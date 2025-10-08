@@ -50,10 +50,6 @@ Blockbuilders adopts a composable hybrid: the user experience is delivered by Ne
 
 ### Platform and Infrastructure Choice
 **Option A – Vercel + Supabase + AWS workers (recommended):** Keeps Next.js on Vercel Edge while delegating auth, managed Postgres (Timescale + pgvector extensions), and lightweight storage to Supabase. AWS Fargate/Batch continue powering FastAPI and simulation workloads with minimal infrastructure drift.
-**Option B – Fully AWS-managed stack:** Replace Supabase with Aurora PostgreSQL and Cognito. Reduces third-party dependencies but requires heavier IAM authoring and custom policy enforcement before we can ship.
-**Option C – Render + Neon serverless Postgres:** Lowest barrier to entry yet lacks compliance guardrails, fine-grained observability, and battle-tested worker orchestration.
-
-Proceeding with Option A pending stakeholder confirmation.
 
 **Platform:** Vercel Edge + Supabase (managed Postgres/Auth) + AWS us-east-1 compute
 **Key Services:** Vercel edge hosting, Supabase (Postgres, Auth, Storage, Row Level Security), AWS Fargate (FastAPI), AWS Batch + Celery workers, AWS ElastiCache for Redis Streams, Amazon S3, AWS EventBridge, Stripe
