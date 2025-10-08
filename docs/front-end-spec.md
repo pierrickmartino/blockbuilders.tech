@@ -7,8 +7,6 @@ This document defines the user experience goals, information architecture, user 
 ### Target User Personas
 **Retail Crypto Tinkerer (Primary):** Non-coding retail trader seeking systematic workflows; needs guided onboarding, transparent backtests, and frictionless first wins to stay confident.
 
-**Power Tinkerer (Iterative Builder):** Data-savvy hobbyist refining complex indicators; expects fast duplication, deep analytics, and granular control without losing context.
-
 **Crypto Educator & Community Leader (Secondary):** Influencer or cohort facilitator distributing templates; requires governance tooling, attribution, and high-signal monitoring that reinforces trust cues.
 
 ### Usability Goals
