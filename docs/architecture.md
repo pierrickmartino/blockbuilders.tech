@@ -15,6 +15,34 @@ N/A – greenfield project. We intentionally assemble a Turborepo monorepo combi
 | 2025-09-21 | v0.2 | Supabase adoption for auth and managed Postgres | Codex (AI) |
 | 2025-09-20 | v0.1 | Initial fullstack architecture synthesized from PRD + UI spec | Winston (Architect) |
 
+## Design Principles
+
+### KISS - Keep It Simple, Stupid
+- Simplicity should be a key goal design
+- Choose straightforward solutions over complex ones whenever possible
+- Simple solutions are easier to understand, maintain, and debug
+
+### DRY - Don’t Repeat Yourself
+- Every piece of knowledge should have a single, unambiguous representation in the system
+- Avoid duplicating logic, code, or configuration
+- Centralize shared functionality so that changes only need to be made once
+
+### YAGNI - You Aren’t Gonna Need It
+- Avoid building functionality on speculation
+- Implement features only when they are needed, not when you anticipate they might be useful in the future
+
+### TDA - Tell, Don’t Ask
+- Objects should be told what to do, not interrogated for state to decide externally
+- Encourages encapsulation and reduces coupling
+- Leads to more expressive, maintainable, and object-oriented code
+
+### Design Principles
+- **Dependency Inversion**: High-level modules should not depend on low-level modules. Both should depend on abstractions.
+- **Open/Closed Principle**: Software entities should be open for extension but closed for modification.
+- **Vertical Slice Architecture**: Organize by features, not layers
+- **Component-First**: Build with reusable, composable components with single responsibility
+- **Fail Fast**: Validate inputs early, throw errors immediately
+
 ## High Level Architecture
 
 ### Technical Summary
@@ -75,7 +103,7 @@ Rel(notify, user, "Emails & in-app alerts")
 ## Tech Stack
 | Layer | Technology | Rationale |
 | --- | --- | --- |
-| Frontend | Next.js 15 (App Router), TypeScript, Tailwind, Radix UI | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind, React Flow, Radix UI, Lucid icons | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
 | Frontend State | React Query + Zustand + Zustand persist | Separates server data from canvas draft state; optimistic UX for validation. |
 | Backend | FastAPI, Uvicorn, SQLAlchemy, Pydantic v2 | High-performance async APIs with strict schema validation and OpenAPI generation. |
 | Workers | Celery 5, Redis Streams, AWS Batch, Pandas, vectorbt | Durable backtests/paper trading with horizontal scaling and time-series tooling. |
@@ -445,7 +473,7 @@ components:
 
 **Dependencies:** Supabase Auth service, Strategy API, Notification API
 
-**Technology Stack:** Next.js 15, React 18, Tailwind, React Query, Zustand
+**Technology Stack:** Next.js 15, React 18, Tailwind, React Flow, React Query, Zustand
 
 ### FastAPI Core Service
 **Responsibility:** Exposes CRUD, enforces quotas, orchestrates jobs, handles compliance/billing webhooks.
