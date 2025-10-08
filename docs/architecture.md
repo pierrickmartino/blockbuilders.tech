@@ -1133,8 +1133,8 @@ blockbuilders/
 ```bash
 # Toolchain
 brew install node@20 pnpm python@3.11 poetry redis awscli
-pip install --upgrade pip
-pip install pre-commit
+uv install --upgrade uv
+uv install pre-commit
 brew install --cask docker
 ```
 
@@ -1226,7 +1226,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install poetry
+      - run: uv install poetry
       - run: poetry install --directory apps/api
       - run: poetry install --directory apps/workers
       - run: poetry run pytest apps/api
