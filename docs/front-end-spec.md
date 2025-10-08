@@ -197,7 +197,7 @@ flowchart TD
 | Small | 14px | 400 | 20px |
 
 ### Iconography
-**Icon Library:** Phosphor Icons set for consistent, rounded geometry.
+**Icon Library:** Lucid Icons set for consistent, rounded geometry.
 
 **Usage Guidelines:** Pair icons with labels for clarity; stick to outlined style at 20px baseline, fill only for alerts; ensure accessible contrast.
 
