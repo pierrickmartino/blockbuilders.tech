@@ -248,6 +248,23 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (Kaiko) and secondary (Coin Metrics) credentials, detailing signup, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
 - Centralize all provisioning runbooks in the repository `ops/playbooks/` directory with last-reviewed timestamps and escalation contacts.
 
+#### DNS & SSL Provisioning Plan
+- **Ownership & Registrar:** Product Owner secures `blockbuilders.app` (plus defensive variants) via AWS Route 53; DevOps Lead administers hosted zones and record updates. Legal/brand approves any additional domains before purchase.
+- **Record Topology:**
+  - `blockbuilders.app` and `www.blockbuilders.app` → CNAME to Vercel-issued targets; enforce HSTS preload once stability burn-in completes.
+  - `api.blockbuilders.app` → ALIAS/ANAME to the AWS Application Load Balancer fronting FastAPI (managed via Terraform under `infrastructure/terraform/networking`).
+  - `staging.blockbuilders.app` and `staging-api.blockbuilders.app` mirror production mappings with staged certificates; TTL ≤ 300 seconds during launch to enable fast rollback.
+  - `auth.blockbuilders.app` reserved for Supabase auth callbacks; document supporting records (DKIM, SPF, DMARC) before transactional email go-live.
+- **Certificate Automation:**
+  - Frontend: Vercel automatically issues and renews certificates after DNS verification; Product Owner verifies activation in the dashboard and logs renewal SLA in release checklist.
+  - Backend: AWS Certificate Manager issues wildcard `*.blockbuilders.app` plus apex; Terraform module requests via DNS validation CNAMEs, attaches certificates to ALB listeners, and relies on ACM auto-renewal.
+  - Stage gating: staging certificates provisioned one sprint ahead of beta to validate OAuth callbacks and Stripe webhooks without production exposure.
+- **Runbook & Verification:**
+  - Author `ops/playbooks/dns-ssl.md` covering purchase steps, DNS change approvals, verification commands (`dig`, `nslookup`, `openssl s_client`), and rollback procedure.
+  - Instrument Datadog HTTPS checks for `https://blockbuilders.app/health` and `https://api.blockbuilders.app/health` with expiry alerts at 30/7/1-day thresholds.
+  - Require dual sign-off (PO + DevOps) before modifying apex records; log change tickets referencing TTLs, validation evidence, and smoke-test results.
+- **Timeline & Dependencies:** Complete domain acquisition and staging certificate validation before Sprint 1 demo; production DNS/SSL cutover scheduled ≥2 weeks before public beta to unblock OAuth redirect registration and Stripe webhook configuration.
+
 #### Responsibility Matrix (Human vs. Agent)
 | Task | Human Owner | Agent/Automation | Notes |
 | --- | --- | --- | --- |

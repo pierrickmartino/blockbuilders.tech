@@ -1287,6 +1287,23 @@ jobs:
 | Production | https://blockbuilders.app | https://api.blockbuilders.app | Live environment |
 
 ### Operational Playbooks & Responsibilities
+#### Initial Data Seeding & Reference Fixtures
+- **Owner:** Data Engineering Lead (executes) with Product Owner sign-off on reference content; DevOps runs automation hooks during deployments.
+- **Source of Truth:** Declarative YAML manifests under `infrastructure/seed-data/` (e.g. `plans.yaml`, `templates.yaml`, `demo-users.yaml`) tracked in Git; generated SQL kept out of version control.
+- **Execution Tooling:** Idempotent Python module `apps/api/app/seed/bootstrap.py` orchestrated through `poetry run python -m app.seed.bootstrap --env={env}`; command resolves manifests, applies migrations, and upserts via SQLAlchemy bulk operations with conflict targets to avoid duplicates.
+- **Data Sets Covered:**
+  - Subscription plans (`free`, `premium`, `educator`) including quota ceilings, Stripe price IDs, and feature flag defaults.
+  - Quota policy baselines used by the plan guardrails service (backtests/day, live paper trades, template forks).
+  - Starter strategy templates referenced by onboarding flows (momentum, mean reversion, DCA) with localized descriptions and compliance metadata.
+  - Demo educator cohort and support accounts with salted passwords pulled from 1Password exports and enforced rotation reminders.
+- **Lifecycle:**
+  1. Update YAML manifests and run `pnpm seed:lint` (wraps `scripts/validate-seed.ts`) to ensure schema compliance.
+  2. Execute `pnpm seed:local` for local Timescale via docker compose; command pipes through bootstrap module and prints summary counts.
+  3. GitHub Action `seed-staging.yml` triggers on staging deploys, running bootstrap against Supabase using ephemeral service-role keys stored in AWS Secrets Manager; production deploy requires manual approval with runbook confirmation in Slack `#launch-pad`.
+  4. Post-run verification `scripts/check-seed.py --env {env}` compares row hashes against manifest digests and emits Datadog gauge `seed.last_success_timestamp`.
+- **Rollback Strategy:** Bootstrap records execution metadata in `seed_runs` table (run id, manifest versions, checksum). `scripts/seed-rollback.py --run <id>` replays prior manifests within a transaction; production rollback requires compliance approval when demo users are involved.
+- **Documentation:** Detailed step-by-step lives in `ops/playbooks/initial-data-seeding.md` including smoke queries (plan counts, template slugs) and troubleshooting (Supabase RLS failures, Stripe price drift).
+
 #### Third-Party Account Provisioning & Credential Management
 - **Supabase (Owner: DevOps Lead)** – Provision projects per environment via Terraform modules under `infrastructure/terraform/supabase`, capture service keys in AWS Secrets Manager, and document read/write role mappings; rotate all non-user keys quarterly with tickets logged in the ops tracker.
 - **AWS Core (Owner: DevOps Lead)** – Stand up IAM roles, networking, S3 buckets, and Batch/Fargate stacks through infrastructure code; enforce MFA on human break-glass accounts and schedule 90-day IAM access reviews.
