@@ -136,7 +136,7 @@ Over 12–24 months, Blockbuilders evolves into the preferred experimentation en
 #### Risk Tracking Summary
 | Risk Focus | Owner | Target Date | Current Status | Mitigation Notes |
 | --- | --- | --- | --- | --- |
-| Market data vendor selection | PM (John) + Data Engineer (TBD) | 2025-09-29 | On Track | Evaluate Kaiko vs. Coin Metrics licensing, document cost/coverage trade-offs |
+| Market data vendor selection | PM (John) + Data Engineer (TBD) | 2025-09-29 | On Track | Evaluate CoinDesk vs. Coin Metrics licensing, document cost/coverage trade-offs |
 | Simulation realism validation | Backend/Quant Lead (TBD) | 2025-10-06 | Planned | Prototype slippage models, compare outputs against historical exchange data |
 | Freemium quota definition | PM (John) + Growth (TBD) | 2025-10-03 | Needs Kickoff | Model load impact and align quotas with monetization targets |
 

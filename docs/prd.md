@@ -2,6 +2,7 @@
 
 ## Change Log
 | Date | Version | Description | Author |
+| 2025-10-10 | v1.7 | Finalized market data procurement, documented SLA/fallback runbook, and stored credentials in secrets vault | John (PM) |
 | 2025-10-09 | v1.6 | Aligned PRD with PO checklist outcomes (Sprint 0 gate criteria, risk tracker updates, documentation links) | John (PM) |
 | 2025-09-22 | v1.5 | Documented account provisioning playbooks, responsibility matrix, and handoff deliverables | John (PM) |
 | 2025-09-21 | v1.4 | Added research synthesis scaffolding, implementation playbook, and updated checklist status | John (PM) |
@@ -246,7 +247,15 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **Supabase (Owner: DevOps Lead)** – Create project per environment via Terraform, capture service keys in secrets manager, and document read/write role mapping for app services; rotate keys quarterly with change tickets logged in the ops tracker.
 - **AWS Core (Owner: DevOps Lead)** – Provision IAM roles, S3 buckets, and networking stacks through IaC with approval from security advisor; enable MFA for human break-glass accounts and enforce 90-day access review checkpoints.
 - **Stripe (Owner: PM + Finance Partner)** – Request production keys through Stripe dashboard once compliance checklist is cleared, store secrets in Vault/Supabase config, and schedule automated webhook replay tests monthly; rotate restricted keys every 180 days.
-- **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (CoinDesk) and secondary (Coin Metrics) credentials, detailing signup, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
+- **Market Data Vendors (Owner: Data Engineering)** – Contract with CoinDesk Market Data Essentials (executed 2025-10-12, 99.9% uptime SLA) and keep Coin Metrics API warm as standby; capture billing approvals, IP allowlists, and monitoring hooks in the runbook below, validate key health weekly, and archive vendor contact history.
+
+##### Market Data SLA & Fallback Runbook (2025-10-12)
+- **Primary vendor:** CoinDesk Market Data Essentials (contract BB-2025-0915) with 99.9% API uptime, <2s response for tracked symbols, 60-minute incident notifications, and escalation alias `md-support@coindesk.com`.
+- **Fallback vendor:** Coin Metrics API maintains quota for failover with 5-minute OHLC coverage; disable depth snapshots while fallback is active to stay within rate limits.
+- **Monitoring trigger:** Data Engineering on-call watches Datadog `vendor.kpis.marketdata.latency` and the vendor status RSS feed; declare incident when latency exceeds 60s for five consecutive checks or when error rate >5% across two minutes.
+- **Fallback activation:** (1) Set feature flag `marketData.source=coin_metrics` in `ops/feature-flags.yaml` and push with "SLA fallback" note. (2) Run `poetry run scripts/swap_market_vendor.py --target=coin_metrics` to repoint ingestion connectors; confirm green status in the `dataplane.status` dashboard. (3) Post incident update on `status.blockbuilders.app` referencing vendor ticket ID and ping `#blockbuilders-product`.
+- **Secrets manifest:** Vault entries `Blockbuilders • Ops • Production • Market Data` and `Blockbuilders • Ops • Staging • Market Data` now store CoinDesk production keys, Coin Metrics fallback tokens, and sandbox credentials; quarterly rotation reminders assigned to Data Engineering owner Alyssa Kim.
+- **Verification & restoration:** Execute `python scripts/check-market-vendors.py --env=staging` after any credential change, reverse the feature flag and rerun the swap script with `--target=coindesk` once incident clears, then run `poetry run tests/test_data_pipeline.py -k vendor_regression` and log lessons in beta operations log entry `BETA-OPS-2025-10-12`; next fallback drill scheduled 2025-12-15.
 - **Sandbox Credential Capture:** Store Supabase, Stripe, and vendor sandbox keys plus replay scripts in the shared 1Password vault (`Blockbuilders • Ops • Sandboxes`) and record access verification steps in the operations tracker so new contributors can self-serve.
 - Execute the following lightweight review before onboarding any new environment: (1) Confirm Terraform state ownership and break-glass contacts, (2) validate service keys by running the smoke commands defined in the vault entry, and (3) log the review date and reviewer in the beta operations log.
 - This inline checklist supersedes the placeholder reference to external playbooks until the dedicated `ops/playbooks/` folder is created; establish that directory during Sprint 0 and back-link its runbooks here once available so procedures remain actionable within the PRD itself.
@@ -340,7 +349,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Reference these templates in the operations log and attach completed entries to each release ticket to maintain consistent communication quality.
 
 ### Technical Risks & Investigation Focus
-- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: 2025-10-15, Status: Contract Pending):** Complete vendor matrix (coverage, SLA, pricing), secure contract signature, and document fallback SLA before Epic 2 kickoff; publish decision notes in the risk register and trigger secrets manifest updates when credentials are issued (`docs/brief.md:118-120`).
+- **Market Data Vendor Validation (Owner: PM + Data Engineering, Completed: 2025-10-12, Status: Closed):** Signed CoinDesk Market Data Essentials contract (99.9% uptime, <2s latency SLA), documented Coin Metrics fallback playbook, and updated secrets manifests (`Blockbuilders • Ops • Production/Staging • Market Data`) plus beta operations log entry `BETA-OPS-2025-10-12`; continue monthly SLA reviews with vendor CSM.
 - **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes; schedule the validation review during Sprint 1 readiness so investigation tasks stay visible.
 - **Infrastructure Cost Guardrails (Owner: DevOps Lead, Due: 2025-10-25, Status: Action Required):** Model worker scaling scenarios against the $8K/month cap, stand up Datadog dashboards with alert thresholds, and document throttling strategies before public beta (`docs/brief.md:97-115`).
 - **Freemium Quota Definition (Owner: PM + Growth, Due: 2025-10-18, Status: Workshop Scheduled):** Facilitate the Sprint 0 workshop to lock guardrail metrics, document decisions in the monetization manifest, and outline upgrade prompts plus alert routing prior to Epic 3 stories.
@@ -349,7 +358,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 #### Risk Mitigation Action Tracker
 | Risk | Owner | Severity | Likelihood | Target Date | Status | Next Action |
 | --- | --- | --- | --- | --- | --- | --- |
-| Market data vendor contract & fallback SLA | PM + Data Engineering | High | Medium | 2025-10-15 | In Progress | Finalize contract signature, publish SLA/fallback notes, and trigger secrets manifest plus seeding updates once credentials land |
+| Market data vendor contract & fallback SLA | PM + Data Engineering | High | Medium | 2025-10-15 | Completed | Monitor SLA performance weekly, keep vendor ticket log current, and rehearse fallback drill on 2025-12-15 |
 | Freemium quota guardrails & monetization manifest | PM + Growth | Medium | Medium | 2025-10-18 | Scheduled | Run Sprint 0 workshop, record quota thresholds in the monetization manifest, and update Story 4.2 dependencies |
 | Compliance dry-run & disclosure rehearsal | Compliance Advisor + PM | Medium | Medium | 2025-10-22 | Pending | Book dry-run session, capture findings in the release template, and refine approval workflow steps |
 | Cost monitoring dashboards & alert thresholds | DevOps Lead | Medium | Low | 2025-10-25 | In Progress | Build Datadog cost dashboards, configure $8K/month alerts, and document the response playbook in `ops/playbooks/` |
@@ -357,7 +366,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 Review this tracker during the weekly product/engineering/design triad to confirm owners and dates remain accurate.
 
 ### Sprint 0 Kickoff Preconditions (Conditional Go)
-- **Market data contract & fallback SLA signed** — owners PM + Data Engineering, target 2025-10-15; capture vendor decision, confirm fallback path, and update secrets manifests plus seed data per the inline runbook.
+- **Market data contract & fallback SLA signed** — owners PM + Data Engineering, completed 2025-10-12; CoinDesk designated primary, Coin Metrics fallback documented, secrets manifests updated for production/staging, and beta operations log entry `BETA-OPS-2025-10-12` captured.
 - **Freemium quota workshop completed** — owners PM + Growth, target 2025-10-18; publish outcomes in the monetization manifest and link artifacts in Story 4.2 and the release checklist.
 - **Compliance approval dry-run scheduled and documented** — owners Compliance Advisor + PM, target 2025-10-22; run through the disclosure checklist, capture findings, and integrate adjustments into the release template before beta content updates.
 - **Cost monitoring dashboards & alert thresholds live** — owner DevOps Lead, target 2025-10-25; stand up Datadog dashboards tied to the $8K/month cap, define escalation routing, and store the response playbook in `ops/playbooks/`.
