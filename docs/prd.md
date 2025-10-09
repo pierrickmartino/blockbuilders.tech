@@ -2,6 +2,7 @@
 
 ## Change Log
 | Date | Version | Description | Author |
+| 2025-10-09 | v1.6 | Aligned PRD with PO checklist outcomes (Sprint 0 gate criteria, risk tracker updates, documentation links) | John (PM) |
 | 2025-09-22 | v1.5 | Documented account provisioning playbooks, responsibility matrix, and handoff deliverables | John (PM) |
 | 2025-09-21 | v1.4 | Added research synthesis scaffolding, implementation playbook, and updated checklist status | John (PM) |
 | 2025-09-20 | v1.3 | Embedded problem context, stakeholder plan, UX flows, and technical risks | John (PM) |
@@ -221,7 +222,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
   | Backend | `STRIPE_SECRET_KEY` | Use test mode key; rotate every 180 days |
   | Shared | `APP_ENV`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `LOG_LEVEL` | Defaults listed in `docs/architecture.md` |
 - **Smoke Tests:** Run `./scripts/test.sh` from repo root to validate the backend health check; add frontend lint/test wiring before beta.
-- **Documentation Hooks:** Update the root `README.md` if commands change and append new pitfalls or automation scripts to this checklist so onboarding stays current.
+- **Documentation Hooks:** Update the root `README.md` when commands change, maintain quick links to the PRD, architecture doc, UX spec, and the PO checklist report, and append new pitfalls or automation scripts to this checklist so onboarding stays current.
 
 ##### Common Pitfalls & Mitigations
 - Node <18 will break Next.js 15 features (ESM, App Router). Validate with `node -v` before running installs.
@@ -248,7 +249,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (CoinDesk) and secondary (Coin Metrics) credentials, detailing signup, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
 - **Sandbox Credential Capture:** Store Supabase, Stripe, and vendor sandbox keys plus replay scripts in the shared 1Password vault (`Blockbuilders • Ops • Sandboxes`) and record access verification steps in the operations tracker so new contributors can self-serve.
 - Execute the following lightweight review before onboarding any new environment: (1) Confirm Terraform state ownership and break-glass contacts, (2) validate service keys by running the smoke commands defined in the vault entry, and (3) log the review date and reviewer in the beta operations log.
-- This inline checklist supersedes the placeholder reference to external playbooks until the dedicated `ops/playbooks/` folder is created, ensuring procedures are actionable within the PRD itself.
+- This inline checklist supersedes the placeholder reference to external playbooks until the dedicated `ops/playbooks/` folder is created; establish that directory during Sprint 0 and back-link its runbooks here once available so procedures remain actionable within the PRD itself.
 
 #### Initial Data Seeding Procedure (Inline Runbook)
 - **Objective:** Keep reference data (subscription plans, quotas, onboarding templates, demo cohort) aligned across environments without depending on missing playbook assets.
@@ -262,6 +263,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **Verification:** Run `python scripts/check-seed.py --env <env>` to compare row hashes against manifest digests and inspect the Datadog metric `seed.last_success_timestamp`; failures require rollback before completing the release.
 - **Rollback:** Use `python scripts/seed-rollback.py --run <id>` to replay prior manifests within a transaction. Production rollbacks require Product Owner approval if demo users or billing data will be altered.
 - **Documentation & Ownership:** Product Owner records each execution in the beta operations log with run ID, manifest versions, and sign-off status; Data Engineering owns quarterly dry-run drills of the rollback path.
+- **Post-decision updates:** When market data contracts or quota thresholds change, regenerate secrets manifests and seed data YAMLs, then log the refresh in the beta operations log for traceability.
 
 #### DNS & SSL Provisioning Plan
 - **Ownership & Registrar:** Product Owner secures `blockbuilders.app` (plus defensive variants) via AWS Route 53; DevOps Lead administers hosted zones and record updates. Legal/brand approves any additional domains before purchase.
@@ -300,6 +302,7 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 #### Documentation & Handoff Deliverables
 - Produce release notes for every production deployment highlighting user-facing changes, known issues, and mitigation steps.
 - Maintain a beta operations log capturing incidents, root cause, and follow-up actions; share summaries during fortnightly stakeholder syncs.
+- Stand up an `ops/playbooks/` directory referenced in this PRD and the architecture docs so runbooks, release templates, and incident guides have a canonical repository home.
 - Ensure support and compliance teams receive updates to disclosures, onboarding copy, and FAQ/education assets at least 24 hours before release.
 - Deliver Sprint 0 knowledge-transfer packet covering release workflow, rollback triggers, support escalation map, and on-call expectations; update after each beta iteration.
 - Define user-facing education suite (onboarding checklist copy, trust & compliance FAQ, tutorial videos) mapped to activation KPIs, with owners assigned for creation and maintenance.
@@ -337,11 +340,29 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Reference these templates in the operations log and attach completed entries to each release ticket to maintain consistent communication quality.
 
 ### Technical Risks & Investigation Focus
-- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1, Status: In Progress):** Complete vendor matrix (coverage, SLA, pricing) by Sprint 0 demo review, capture final decision in docs/prd.md and architecture appendix, and secure fallback SLA before Epic 2 kickoff (`docs/brief.md:118-120`).
-- **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes.
-- **Infrastructure Cost Guardrails (Owner: DevOps, Due: Ongoing, Status: Monitoring):** Model worker scaling scenarios against the $8K/month cap and define throttling strategies before public beta (`docs/brief.md:97-115`).
-- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2, Status: Pending Kickoff):** Facilitate cross-functional workshop during Sprint 0 to lock guardrail metrics, document decisions in the quota manifest, and publish rollout plan (alerts, upgrade prompts) before Epic 3 stories begin.
-- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3, Status: Pending with Plan):** Draft approval RACI and integrate disclosure checklist into the release template by Sprint 1; rehearse the workflow during the first beta content update to validate timing assumptions.
+- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: 2025-10-15, Status: Contract Pending):** Complete vendor matrix (coverage, SLA, pricing), secure contract signature, and document fallback SLA before Epic 2 kickoff; publish decision notes in the risk register and trigger secrets manifest updates when credentials are issued (`docs/brief.md:118-120`).
+- **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes; schedule the validation review during Sprint 1 readiness so investigation tasks stay visible.
+- **Infrastructure Cost Guardrails (Owner: DevOps Lead, Due: 2025-10-25, Status: Action Required):** Model worker scaling scenarios against the $8K/month cap, stand up Datadog dashboards with alert thresholds, and document throttling strategies before public beta (`docs/brief.md:97-115`).
+- **Freemium Quota Definition (Owner: PM + Growth, Due: 2025-10-18, Status: Workshop Scheduled):** Facilitate the Sprint 0 workshop to lock guardrail metrics, document decisions in the monetization manifest, and outline upgrade prompts plus alert routing prior to Epic 3 stories.
+- **Compliance Review Workflow (Owner: Compliance Advisor + PM, Due: 2025-10-22, Status: Pending Scheduling):** Draft approval RACI, integrate the disclosure checklist into the release template, and rehearse the workflow during the first beta content update to validate timing assumptions.
+
+#### Risk Mitigation Action Tracker
+| Risk | Owner | Severity | Likelihood | Target Date | Status | Next Action |
+| --- | --- | --- | --- | --- | --- | --- |
+| Market data vendor contract & fallback SLA | PM + Data Engineering | High | Medium | 2025-10-15 | In Progress | Finalize contract signature, publish SLA/fallback notes, and trigger secrets manifest plus seeding updates once credentials land |
+| Freemium quota guardrails & monetization manifest | PM + Growth | Medium | Medium | 2025-10-18 | Scheduled | Run Sprint 0 workshop, record quota thresholds in the monetization manifest, and update Story 4.2 dependencies |
+| Compliance dry-run & disclosure rehearsal | Compliance Advisor + PM | Medium | Medium | 2025-10-22 | Pending | Book dry-run session, capture findings in the release template, and refine approval workflow steps |
+| Cost monitoring dashboards & alert thresholds | DevOps Lead | Medium | Low | 2025-10-25 | In Progress | Build Datadog cost dashboards, configure $8K/month alerts, and document the response playbook in `ops/playbooks/` |
+
+Review this tracker during the weekly product/engineering/design triad to confirm owners and dates remain accurate.
+
+### Sprint 0 Kickoff Preconditions (Conditional Go)
+- **Market data contract & fallback SLA signed** — owners PM + Data Engineering, target 2025-10-15; capture vendor decision, confirm fallback path, and update secrets manifests plus seed data per the inline runbook.
+- **Freemium quota workshop completed** — owners PM + Growth, target 2025-10-18; publish outcomes in the monetization manifest and link artifacts in Story 4.2 and the release checklist.
+- **Compliance approval dry-run scheduled and documented** — owners Compliance Advisor + PM, target 2025-10-22; run through the disclosure checklist, capture findings, and integrate adjustments into the release template before beta content updates.
+- **Cost monitoring dashboards & alert thresholds live** — owner DevOps Lead, target 2025-10-25; stand up Datadog dashboards tied to the $8K/month cap, define escalation routing, and store the response playbook in `ops/playbooks/`.
+
+Address these items before closing Sprint 0 intake to honor the conditional go decision captured in the PO checklist report.
 
 ## Epic List
 1. Epic 1 – Foundation & Guided Strategy Canvas: Stand up the core platform, authentication, and a guided canvas experience that delivers the first backtest win.
@@ -485,6 +506,8 @@ so that we monetize while keeping the free tier compelling.
 2. 2: Over-limit attempts prompt upgrade CTAs and gated functionality messaging.
 3. 3: Premium activation via Stripe updates entitlements in near real-time and unlocks advanced analytics.
 4. 4: Billing events and receipts are auditable and exportable for finance review.
+
+_Implementation notes:_ Monetization manifest updates from the Sprint 0 quota workshop must be referenced here and in the release checklist before this story moves to development.
 
 ### Story 4.3 Compliance & Trust Framework
 As a compliance advisor,
