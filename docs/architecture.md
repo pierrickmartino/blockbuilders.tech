@@ -1302,13 +1302,37 @@ jobs:
   3. GitHub Action `seed-staging.yml` triggers on staging deploys, running bootstrap against Supabase using ephemeral service-role keys stored in AWS Secrets Manager; production deploy requires manual approval with runbook confirmation in Slack `#launch-pad`.
   4. Post-run verification `scripts/check-seed.py --env {env}` compares row hashes against manifest digests and emits Datadog gauge `seed.last_success_timestamp`.
 - **Rollback Strategy:** Bootstrap records execution metadata in `seed_runs` table (run id, manifest versions, checksum). `scripts/seed-rollback.py --run <id>` replays prior manifests within a transaction; production rollback requires compliance approval when demo users are involved.
-- **Documentation:** Detailed step-by-step lives in `ops/playbooks/initial-data-seeding.md` including smoke queries (plan counts, template slugs) and troubleshooting (Supabase RLS failures, Stripe price drift).
+- **Operational Steps (inline reference):**
+  1. **Pre-flight:** Confirm latest manifests committed, gather Supabase project + Stripe restricted key from shared secrets vault, and announce window in `#launch-pad`.
+  2. **Dry run:** `pnpm seed:lint && pnpm seed:local` to validate schemas and confirm bootstrap summary matches manifest digest counts; remediate lint or checksum drift before proceeding.
+  3. **Target run:** `poetry run python -m app.seed.bootstrap --env={staging|production}` executed from CI or approved operator shell; provide manifest git SHA and operator initials in prompt when requested.
+  4. **Post-run verification:** Execute `scripts/check-seed.py --env {env}` then review Datadog gauge `seed.last_success_timestamp`; log run id, manifest SHA, and verification outcome in ops notebook (Notion: "Seed Runs").
+  5. **Rollback path:** If discrepancies detected, invoke `scripts/seed-rollback.py --run <id>` and re-run verification; escalate to Data Engineering lead if automated rollback surfaces merge conflicts.
+- **Troubleshooting:**
+  - Supabase RLS failures → ensure service-role key used, inspect `seed_runs` audit for offending table, and temporarily relax conflicting policy via SQL (`alter policy ... using (true)`), restoring original predicate once run succeeds.
+  - Stripe price drift → reconcile plan price IDs against Stripe dashboard, update `plans.yaml`, rerun bootstrap, and confirm webhook replay passes without mismatches.
+
+#### DNS & SSL Provisioning Runbook
+- **Owner:** DevOps Lead (execution) with backup from Staff Engineer.
+- **Scope:** Route53, CloudFront, and Vercel certificate lifecycle for `*.blockbuilders.app` domains.
+- **Pre-checks:**
+  1. Validate desired records in `infrastructure/terraform/dns/records.tf` and confirm ACM certificate request pending/approved.
+  2. Verify Cloudflare (if used for marketing site) has updated origin IPs and proxy modes to avoid certificate mismatch.
+  3. Ensure change window communicated in `#launch-pad` with rollback contact list.
+- **Execution Steps:**
+  1. Apply Terraform changes: `terraform workspace select {staging|production}` then `terraform apply -auto-approve`.
+  2. For Vercel-managed frontends, run `vercel certs issue blockbuilders.app www.blockbuilders.app` when prompted, copying validation CNAMEs back into Terraform.
+  3. Propagate DNS by verifying Route53 change status (`aws route53 get-change <change-id>`), checking `dig +short` results for key records, and confirming CloudFront distribution status is `Deployed`.
+- **Validation:** Confirm HTTPS availability via Datadog synthetic monitor or `curl -I https://{domain}`; review AWS Certificate Manager for issued status and expiry > 60 days.
+- **Rollback:** Reapply previous Terraform state (`terraform apply "planfiles/{env}-last.plan"`) and restore prior certificate ARN values; notify incident channel if rollback executed.
+- **Record Keeping:** Document change, validation evidence, and operator in Notion "DNS & SSL Runbook" page; attach Terraform plan, `aws route53 get-change`, and `curl -I https://{domain}` outputs.
 
 #### Third-Party Account Provisioning & Credential Management
 - **Supabase (Owner: DevOps Lead)** – Provision projects per environment via Terraform modules under `infrastructure/terraform/supabase`, capture service keys in AWS Secrets Manager, and document read/write role mappings; rotate all non-user keys quarterly with tickets logged in the ops tracker.
 - **AWS Core (Owner: DevOps Lead)** – Stand up IAM roles, networking, S3 buckets, and Batch/Fargate stacks through infrastructure code; enforce MFA on human break-glass accounts and schedule 90-day IAM access reviews.
 - **Stripe (Owner: PM + Finance Partner)** – Request production keys after compliance checklist sign-off, store secrets in Vault/Supabase configuration tables, and automate webhook replay tests monthly; rotate restricted keys every 180 days.
-- **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (Kaiko) and secondary (Coin Metrics) credentials with onboarding steps, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
+- **Market Data Vendors (Owner: Data Engineering)** – Kaiko confirmed as primary feed (contract pending signature 2025-10-15) with Coin Metrics as warm standby; capture SLA clauses, rate limits, and symbol coverage in the "Market Data Vendor Readiness" appendix below and refresh fallback procedure checklist (feature flag toggle + redeploy steps) each quarter; attach procurement status and billing contacts in ops tracker.
+- **Sandbox Credential Catalog:** Store Supabase, Stripe, Kaiko, and Coin Metrics sandbox keys plus replay/mock instructions in 1Password vault `Blockbuilders Ops`; mirror an operator walkthrough in the "Secrets & Sandbox Access" appendix outlining how to request access, rotate credentials, and execute replay smoke tests.
 - Centralize detailed playbooks under `ops/playbooks/` with last-reviewed timestamps, escalation contacts, and Terraform state references so new contributors can execute without tribal knowledge.
 
 #### Responsibility Matrix (Human vs. Automation)
@@ -1328,9 +1352,61 @@ jobs:
 
 #### Knowledge Transfer & Support Handoffs
 - Produce Sprint 0 knowledge-transfer packet covering release workflow, rollback triggers, support escalation map, and on-call expectations; refresh after each beta iteration.
-- Maintain beta operations log (incidents, root cause, follow-ups) and distribute summaries during fortnightly stakeholder syncs.
-- Ensure support and compliance teams receive updated disclosures, onboarding copy, and FAQ assets at least 24 hours before deploy; host documentation in shared Notion with repository pointers.
+- Maintain beta operations log (incidents, root cause, follow-ups) using the template below and distribute summaries during fortnightly stakeholder syncs.
+- Ensure support and compliance teams receive updated disclosures, onboarding copy, and FAQ assets at least 24 hours before deploy; host documentation in shared Notion with repository pointers and attach release notes generated from the template below.
 - Deliver user-facing education suite (onboarding checklist copy, trust/compliance FAQ, tutorial videos) mapped to activation KPIs, with clear ownership and review cadence.
+
+#### Code Review & Knowledge Sharing Checklist
+- [ ] Reference story acceptance criteria and affected modules before opening PR; list scenarios validated locally (unit/integration/E2E).
+- [ ] Pair reviewer assigned in Linear ticket; add subject-matter reviewer for domain-heavy PRs (compliance, billing, seeding).
+- [ ] Ensure architectural decision records (ADRs) updated when PR changes system boundaries or workflows.
+- [ ] Post-review summary in `#dev-updates` including feature flag status, rollout plan, and follow-up tasks.
+- [ ] Capture learnings or debugging insights in team handbook within 24 hours; link handbook entry back to originating PR.
+
+#### Release Notes & Incident Log Templates
+```markdown
+## Release Note
+- Date:
+- Release Owner:
+- Feature Highlights:
+  -
+- Migrations/Operational Tasks:
+  -
+- Rollback Plan:
+- Customer Comm Link:
+
+---
+
+## Beta Incident Log
+- Incident ID:
+- Detected (date/time):
+- Reporter:
+- Severity:
+- User Impact Summary:
+- Timeline:
+  -
+- Root Cause:
+- Mitigations Applied:
+- Follow-up Actions:
+- Verification Evidence:
+```
+
+#### Market Data Vendor Readiness
+| Item | Kaiko (Primary) | Coin Metrics (Secondary) |
+| --- | --- | --- |
+| Contract status | Pending signature (expected 2025-10-15) | Active evaluation sandbox |
+| Coverage | Spot + derivatives for top 150 assets | Spot focus, derivatives limited |
+| SLAs | 99.9% uptime, 300ms P95 latency | 99.5% uptime, 500ms P95 |
+| Rate limits | 600 requests/min per API key | 400 requests/min |
+| Fallback procedure | Update runtime feature flag `marketData.provider=coinMetrics`, redeploy workers, flush Redis caches, and validate dashboard parity | Maintain warm cache, sync once per hour |
+| Monitoring | Datadog synthetic `marketdata-primary` + webhook heartbeat | Datadog synthetic `marketdata-fallback` |
+| Contacts | Vendor TAM: tam@kaiko.com; escalation: support@kaiko.com | Support: support@coinmetrics.io |
+
+#### Secrets & Sandbox Access
+- All sandbox credentials stored in 1Password vault `Blockbuilders Ops`; access requires DevOps approval and Okta MFA.
+- Redacted walkthrough (request, retrieval, rotation) maintained in Notion "Secrets Operations" page; update page when keys rotate or tooling changes.
+- Replay tests: run `stripe trigger payment_intent.succeeded` and `poetry run python -m app.seed.bootstrap --env=sandbox` monthly to validate integrations; record outcomes in beta operations log template above.
+- Rotation cadence: Supabase service keys quarterly, Stripe restricted keys every 180 days, market data keys monthly; log rotations in ops tracker with link to verification artifacts.
 
 ## Security and Performance
 

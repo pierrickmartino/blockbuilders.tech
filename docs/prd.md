@@ -246,7 +246,22 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **AWS Core (Owner: DevOps Lead)** – Provision IAM roles, S3 buckets, and networking stacks through IaC with approval from security advisor; enable MFA for human break-glass accounts and enforce 90-day access review checkpoints.
 - **Stripe (Owner: PM + Finance Partner)** – Request production keys through Stripe dashboard once compliance checklist is cleared, store secrets in Vault/Supabase config, and schedule automated webhook replay tests monthly; rotate restricted keys every 180 days.
 - **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (Kaiko) and secondary (Coin Metrics) credentials, detailing signup, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
-- Centralize all provisioning runbooks in the repository `ops/playbooks/` directory with last-reviewed timestamps and escalation contacts.
+- **Sandbox Credential Capture:** Store Supabase, Stripe, and vendor sandbox keys plus replay scripts in the shared 1Password vault (`Blockbuilders • Ops • Sandboxes`) and record access verification steps in the operations tracker so new contributors can self-serve.
+- Execute the following lightweight review before onboarding any new environment: (1) Confirm Terraform state ownership and break-glass contacts, (2) validate service keys by running the smoke commands defined in the vault entry, and (3) log the review date and reviewer in the beta operations log.
+- This inline checklist supersedes the placeholder reference to external playbooks until the dedicated `ops/playbooks/` folder is created, ensuring procedures are actionable within the PRD itself.
+
+#### Initial Data Seeding Procedure (Inline Runbook)
+- **Objective:** Keep reference data (subscription plans, quotas, onboarding templates, demo cohort) aligned across environments without depending on missing playbook assets.
+- **Pre-flight Checks:**
+  1. Update manifests under `infrastructure/seed-data/*.yaml` and run `pnpm seed:lint` to verify schema compliance.
+  2. Retrieve the target environment service-role key from AWS Secrets Manager (or the shared vault) and perform a quick connectivity check with `psql` or Supabase SQL editor to ensure credentials are valid before seeding.
+- **Execution:**
+  1. Local: `pnpm seed:local` (wraps `poetry run python -m app.seed.bootstrap --env=local`) populates Docker-backed Timescale; verify counts printed in the summary table.
+  2. Staging: Trigger GitHub workflow `Seed Staging` or run `poetry run python -m app.seed.bootstrap --env=staging` with AWS Secrets Manager service-role key exported; capture CLI output in the release checklist.
+  3. Production: Execute the staging command behind a change ticket after compliance approval, using the protected production key bundle; notify `#launch-pad` with manifest commit hash.
+- **Verification:** Run `python scripts/check-seed.py --env <env>` to compare row hashes against manifest digests and inspect the Datadog metric `seed.last_success_timestamp`; failures require rollback before completing the release.
+- **Rollback:** Use `python scripts/seed-rollback.py --run <id>` to replay prior manifests within a transaction. Production rollbacks require Product Owner approval if demo users or billing data will be altered.
+- **Documentation & Ownership:** Product Owner records each execution in the beta operations log with run ID, manifest versions, and sign-off status; Data Engineering owns quarterly dry-run drills of the rollback path.
 
 #### DNS & SSL Provisioning Plan
 - **Ownership & Registrar:** Product Owner secures `blockbuilders.app` (plus defensive variants) via AWS Route 53; DevOps Lead administers hosted zones and record updates. Legal/brand approves any additional domains before purchase.
@@ -259,10 +274,12 @@ Establish a full testing pyramid: unit tests for React components, Python busine
   - Frontend: Vercel automatically issues and renews certificates after DNS verification; Product Owner verifies activation in the dashboard and logs renewal SLA in release checklist.
   - Backend: AWS Certificate Manager issues wildcard `*.blockbuilders.app` plus apex; Terraform module requests via DNS validation CNAMEs, attaches certificates to ALB listeners, and relies on ACM auto-renewal.
   - Stage gating: staging certificates provisioned one sprint ahead of beta to validate OAuth callbacks and Stripe webhooks without production exposure.
-- **Runbook & Verification:**
-  - Author `ops/playbooks/dns-ssl.md` covering purchase steps, DNS change approvals, verification commands (`dig`, `nslookup`, `openssl s_client`), and rollback procedure.
-  - Instrument Datadog HTTPS checks for `https://blockbuilders.app/health` and `https://api.blockbuilders.app/health` with expiry alerts at 30/7/1-day thresholds.
-  - Require dual sign-off (PO + DevOps) before modifying apex records; log change tickets referencing TTLs, validation evidence, and smoke-test results.
+- **Inline Runbook & Verification:**
+  1. Pre-change: confirm registrar ownership in Route 53, export current records via `aws route53 list-resource-record-sets`, and snapshot configuration in the release ticket.
+  2. Apply updates using Terraform from `infrastructure/terraform/networking` (e.g., `terraform plan -target=module.dns && terraform apply`) and capture plan output; obtain dual approval (PO + DevOps) before applying changes.
+  3. Validate propagation with `dig +trace blockbuilders.app`, `nslookup api.blockbuilders.app`, and `openssl s_client -connect api.blockbuilders.app:443 -servername api.blockbuilders.app` to inspect certificate chains.
+  4. Instrument Datadog HTTPS checks for `https://blockbuilders.app/health` and `https://api.blockbuilders.app/health` with expiry alerts at 30/7/1-day thresholds.
+  5. Post-change: document results (commands, TTL observations, health-check screenshots) in the release checklist and capture rollback instructions (reapply previous Terraform state or restore exported records) before closing the ticket.
 - **Timeline & Dependencies:** Complete domain acquisition and staging certificate validation before Sprint 1 demo; production DNS/SSL cutover scheduled ≥2 weeks before public beta to unblock OAuth redirect registration and Stripe webhook configuration.
 
 #### Responsibility Matrix (Human vs. Agent)
@@ -287,12 +304,44 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Deliver Sprint 0 knowledge-transfer packet covering release workflow, rollback triggers, support escalation map, and on-call expectations; update after each beta iteration.
 - Define user-facing education suite (onboarding checklist copy, trust & compliance FAQ, tutorial videos) mapped to activation KPIs, with owners assigned for creation and maintenance.
 
+#### Code Review & Knowledge Sharing Checklist
+- Confirm ticket links, acceptance criteria coverage, and test evidence (unit, integration, or manual) before assigning reviewers; block merges until checkboxes complete in the PR template.
+- Require at least one specialist reviewer (backend, frontend, or data) plus a secondary reviewer rotating weekly; capture review outcomes and follow-up actions in the beta operations log.
+- During weekly dev sync, highlight merged PRs with notable architectural decisions, schema changes, or operational impacts; record Loom/Wiki links in the knowledge-transfer packet.
+- Archive review highlights and lessons learned in the shared Notion space (`Engineering • Review Digest`) to accelerate onboarding and reduce tribal knowledge.
+
+#### Operational Communication Templates
+- **Release Notes Skeleton:**
+  ```markdown
+  ## Release <version> – <date>
+  ### Highlights
+  - <Feature/Impact>
+  ### User-Facing Changes
+  - <Copy updates, UX adjustments>
+  ### Operational Notes
+  - <Migrations, feature flags, follow-up actions>
+  ### Known Issues & Mitigations
+  - <Issue + owner + target resolution>
+  ```
+- **Beta Incident Log Entry:**
+  ```markdown
+  - Timestamp (UTC):
+  - Severity:
+  - Detection Source:
+  - Impacted Users/Requests:
+  - Immediate Mitigation:
+  - Root Cause Summary:
+  - Follow-up Tasks & Owners:
+  - Customer Communication Sent:
+  ```
+- Reference these templates in the operations log and attach completed entries to each release ticket to maintain consistent communication quality.
+
 ### Technical Risks & Investigation Focus
-- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1, Status: On Track):** Compare Kaiko, Coin Metrics, and alternates for pricing, licensing, and latency to confirm coverage fits beta budget (`docs/brief.md:118-120`).
+- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1, Status: In Progress):** Complete vendor matrix (coverage, SLA, pricing) by Sprint 0 demo review, capture final decision in docs/prd.md and architecture appendix, and secure fallback SLA before Epic 2 kickoff (`docs/brief.md:118-120`).
 - **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes.
 - **Infrastructure Cost Guardrails (Owner: DevOps, Due: Ongoing, Status: Monitoring):** Model worker scaling scenarios against the $8K/month cap and define throttling strategies before public beta (`docs/brief.md:97-115`).
-- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2, Status: Needs Kickoff):** Finalize run/day and strategy limits that balance conversion targets with platform load, then codify upgrade prompts.
-- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3, Status: Pending):** Establish disclosure audit cadence, messaging approvals, and escalation paths to avoid regulatory misinterpretation.
+- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2, Status: Pending Kickoff):** Facilitate cross-functional workshop during Sprint 0 to lock guardrail metrics, document decisions in the quota manifest, and publish rollout plan (alerts, upgrade prompts) before Epic 3 stories begin.
+- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3, Status: Pending with Plan):** Draft approval RACI and integrate disclosure checklist into the release template by Sprint 1; rehearse the workflow during the first beta content update to validate timing assumptions.
 
 ## Epic List
 1. Epic 1 – Foundation & Guided Strategy Canvas: Stand up the core platform, authentication, and a guided canvas experience that delivers the first backtest win.
