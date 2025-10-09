@@ -93,7 +93,7 @@ Blockbuilders combines a drag-and-drop strategy canvas, institutional-grade mark
 - Nightly snapshots and weekly full backups must be automated for TimescaleDB and application databases, with restore drills executed quarterly.
 
 #### Integrations
-- Market data connectors must support a primary vendor (e.g., Kaiko) and secondary failover (e.g., Coin Metrics) with hourly reconciliation and API key rotation every 90 days.
+- Market data connectors must support a primary vendor (e.g., CoinDesk) and secondary failover (e.g., Coin Metrics) with hourly reconciliation and API key rotation every 90 days.
 - Stripe integration handles billing, entitlement updates, and invoices via signed webhooks; sandbox and production keys must be isolated with replay protection.
 - Notification services use SendGrid for email delivery and in-app notification center as fallback; email templates must contain compliance disclosures and unsubscribe links.
 - Observability data must stream into Datadog (logs, metrics, traces) with shared dashboards for product, engineering, and operations.

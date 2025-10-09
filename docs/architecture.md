@@ -564,15 +564,15 @@ graph LR
 
 ### Institutional Market Data API
 - **Purpose:** Provide historical and near-real-time crypto data for backtests and paper trades.
-- **Documentation:** https://docs.kaiko.com/
-- **Base URL(s):** https://gateway.kaiko.com
+- **Documentation:** CoinDesk Market Data portal (see ops tracker for login link)
+- **Base URL(s):** https://api.coindesk.com (enterprise cluster; confirm per environment)
 - **Authentication:** API key in `Authorization` header
-- **Rate Limits:** Enterprise SLA 200 req/minute (burst 400)
+- **Rate Limits:** Enterprise SLA 200 req/minute (burst 400) – verify against CoinDesk contract
 
 **Key Endpoints Used:**
-- `GET /v2/data/trades.v1/exchanges/{exchange}/instrument/{pair}` – trade history
+- `GET /market-data/v1/trades/{instrument}` – trade history (confirm instrument mapping with CoinDesk)
 
-**Integration Notes:** Cache candles in Redis for short windows, implement retry/backoff, store API key in AWS Secrets Manager.
+**Integration Notes:** Cache candles in Redis for short windows, implement retry/backoff, store CoinDesk API key in AWS Secrets Manager.
 
 ### Stripe Billing API
 - **Purpose:** Manage subscriptions, quotas, invoices, and premium upgrades.
@@ -1331,8 +1331,8 @@ jobs:
 - **Supabase (Owner: DevOps Lead)** – Provision projects per environment via Terraform modules under `infrastructure/terraform/supabase`, capture service keys in AWS Secrets Manager, and document read/write role mappings; rotate all non-user keys quarterly with tickets logged in the ops tracker.
 - **AWS Core (Owner: DevOps Lead)** – Stand up IAM roles, networking, S3 buckets, and Batch/Fargate stacks through infrastructure code; enforce MFA on human break-glass accounts and schedule 90-day IAM access reviews.
 - **Stripe (Owner: PM + Finance Partner)** – Request production keys after compliance checklist sign-off, store secrets in Vault/Supabase configuration tables, and automate webhook replay tests monthly; rotate restricted keys every 180 days.
-- **Market Data Vendors (Owner: Data Engineering)** – Kaiko confirmed as primary feed (contract pending signature 2025-10-15) with Coin Metrics as warm standby; capture SLA clauses, rate limits, and symbol coverage in the "Market Data Vendor Readiness" appendix below and refresh fallback procedure checklist (feature flag toggle + redeploy steps) each quarter; attach procurement status and billing contacts in ops tracker.
-- **Sandbox Credential Catalog:** Store Supabase, Stripe, Kaiko, and Coin Metrics sandbox keys plus replay/mock instructions in 1Password vault `Blockbuilders Ops`; mirror an operator walkthrough in the "Secrets & Sandbox Access" appendix outlining how to request access, rotate credentials, and execute replay smoke tests.
+- **Market Data Vendors (Owner: Data Engineering)** – CoinDesk confirmed as primary feed (contract pending signature 2025-10-15) with Coin Metrics as warm standby; capture SLA clauses, rate limits, and symbol coverage in the "Market Data Vendor Readiness" appendix below and refresh fallback procedure checklist (feature flag toggle + redeploy steps) each quarter; attach procurement status and billing contacts in ops tracker.
+- **Sandbox Credential Catalog:** Store Supabase, Stripe, CoinDesk, and Coin Metrics sandbox keys plus replay/mock instructions in 1Password vault `Blockbuilders Ops`; mirror an operator walkthrough in the "Secrets & Sandbox Access" appendix outlining how to request access, rotate credentials, and execute replay smoke tests.
 - Centralize detailed playbooks under `ops/playbooks/` with last-reviewed timestamps, escalation contacts, and Terraform state references so new contributors can execute without tribal knowledge.
 
 #### Responsibility Matrix (Human vs. Automation)
@@ -1392,7 +1392,7 @@ jobs:
 ```
 
 #### Market Data Vendor Readiness
-| Item | Kaiko (Primary) | Coin Metrics (Secondary) |
+| Item | CoinDesk (Primary) | Coin Metrics (Secondary) |
 | --- | --- | --- |
 | Contract status | Pending signature (expected 2025-10-15) | Active evaluation sandbox |
 | Coverage | Spot + derivatives for top 150 assets | Spot focus, derivatives limited |
@@ -1400,7 +1400,6 @@ jobs:
 | Rate limits | 600 requests/min per API key | 400 requests/min |
 | Fallback procedure | Update runtime feature flag `marketData.provider=coinMetrics`, redeploy workers, flush Redis caches, and validate dashboard parity | Maintain warm cache, sync once per hour |
 | Monitoring | Datadog synthetic `marketdata-primary` + webhook heartbeat | Datadog synthetic `marketdata-fallback` |
-| Contacts | Vendor TAM: tam@kaiko.com; escalation: support@kaiko.com | Support: support@coinmetrics.io |
 
 #### Secrets & Sandbox Access
 - All sandbox credentials stored in 1Password vault `Blockbuilders Ops`; access requires DevOps approval and Okta MFA.
@@ -1412,7 +1411,7 @@ jobs:
 
 ### Security Requirements
 **Frontend:**
-- CSP: default-src 'self'; frame-ancestors none; script-src 'self' vercel.dev analytics; allow Kaiko endpoint.
+- CSP: default-src 'self'; frame-ancestors none; script-src 'self' vercel.dev analytics; allow CoinDesk endpoint.
 - XSS: Rely on React escaping; sanitize user-generated descriptions via DOMPurify; avoid raw HTML injection.
 - Storage: Keep tokens in HttpOnly cookies; use localStorage only for non-sensitive preferences.
 
