@@ -1,0 +1,2 @@
+# Solution Overview
+Blockbuilders combines a drag-and-drop strategy canvas, institutional-grade market data, deterministic backtesting, and continuous paper trading into an approachable experimentation lab. Guided onboarding, templated strategies, and contextual education deliver early success moments, while freemium guardrails and premium analytics provide a clear upgrade path. The platform succeeds when curious traders and community educators treat it as their primary environment for designing, validating, and sharing systematic strategies.
