@@ -352,14 +352,14 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - **Market Data Vendor Validation (Owner: PM + Data Engineering, Completed: 2025-10-12, Status: Closed):** Signed CoinDesk Market Data Essentials contract (99.9% uptime, <2s latency SLA), documented Coin Metrics fallback playbook, and updated secrets manifests (`Blockbuilders • Ops • Production/Staging • Market Data`) plus beta operations log entry `BETA-OPS-2025-10-12`; continue monthly SLA reviews with vendor CSM.
 - **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes; schedule the validation review during Sprint 1 readiness so investigation tasks stay visible.
 - **Infrastructure Cost Guardrails (Owner: DevOps Lead, Due: 2025-10-25, Status: Action Required):** Model worker scaling scenarios against the $8K/month cap, stand up Datadog dashboards with alert thresholds, and document throttling strategies before public beta (`docs/brief.md:97-115`).
-- **Freemium Quota Definition (Owner: PM + Growth, Due: 2025-10-18, Status: Workshop Scheduled):** Facilitate the Sprint 0 workshop to lock guardrail metrics, document decisions in the monetization manifest, and outline upgrade prompts plus alert routing prior to Epic 3 stories.
+- **Freemium Quota Definition (Owner: PM + Growth, Completed: 2025-10-18, Status: Closed):** Sprint 0 workshop captured plan guardrails in `docs/monetization/manifest.md`, detailing freemium/premium quotas, upgrade prompts, and instrumentation; Engineering and Growth now integrate entitlements middleware and dashboards ahead of Epic 3.
 - **Compliance Review Workflow (Owner: Compliance Advisor + PM, Due: 2025-10-22, Status: Pending Scheduling):** Draft approval RACI, integrate the disclosure checklist into the release template, and rehearse the workflow during the first beta content update to validate timing assumptions.
 
 #### Risk Mitigation Action Tracker
 | Risk | Owner | Severity | Likelihood | Target Date | Status | Next Action |
 | --- | --- | --- | --- | --- | --- | --- |
 | Market data vendor contract & fallback SLA | PM + Data Engineering | High | Medium | 2025-10-15 | Completed | Monitor SLA performance weekly, keep vendor ticket log current, and rehearse fallback drill on 2025-12-15 |
-| Freemium quota guardrails & monetization manifest | PM + Growth | Medium | Medium | 2025-10-18 | Scheduled | Run Sprint 0 workshop, record quota thresholds in the monetization manifest, and update Story 4.2 dependencies |
+| Freemium quota guardrails & monetization manifest | PM + Growth | Medium | Medium | 2025-10-18 | Completed | Manifest published at `docs/monetization/manifest.md`; next integrate entitlements middleware and quota dashboards (Engineering Lead + Growth Ops) |
 | Compliance dry-run & disclosure rehearsal | Compliance Advisor + PM | Medium | Medium | 2025-10-22 | Pending | Book dry-run session, capture findings in the release template, and refine approval workflow steps |
 | Cost monitoring dashboards & alert thresholds | DevOps Lead | Medium | Low | 2025-10-25 | In Progress | Build Datadog cost dashboards, configure $8K/month alerts, and document the response playbook in `ops/playbooks/` |
 
@@ -367,7 +367,7 @@ Review this tracker during the weekly product/engineering/design triad to confir
 
 ### Sprint 0 Kickoff Preconditions (Conditional Go)
 - **Market data contract & fallback SLA signed** — owners PM + Data Engineering, completed 2025-10-12; CoinDesk designated primary, Coin Metrics fallback documented, secrets manifests updated for production/staging, and beta operations log entry `BETA-OPS-2025-10-12` captured.
-- **Freemium quota workshop completed** — owners PM + Growth, target 2025-10-18; publish outcomes in the monetization manifest and link artifacts in Story 4.2 and the release checklist.
+- **Freemium quota workshop completed** — owners PM + Growth, completed 2025-10-18; outcomes documented in `docs/monetization/manifest.md` and referenced by Story 4.2 plus the release checklist.
 - **Compliance approval dry-run scheduled and documented** — owners Compliance Advisor + PM, target 2025-10-22; run through the disclosure checklist, capture findings, and integrate adjustments into the release template before beta content updates.
 - **Cost monitoring dashboards & alert thresholds live** — owner DevOps Lead, target 2025-10-25; stand up Datadog dashboards tied to the $8K/month cap, define escalation routing, and store the response playbook in `ops/playbooks/`.
 
@@ -510,13 +510,18 @@ As a product owner,
 I want to enforce plan limits and unlock premium features,
 so that we monetize while keeping the free tier compelling.
 
+#### Quota Workshop Snapshot
+- **Freemium guardrails:** 3 active strategies (10 drafts), 20 backtests/24h (1 concurrent), 1 active paper schedule (200 orders/month), 30-day analytics retention, in-app alerts only.
+- **Premium allowances:** 20 active strategies (200 drafts), 250 backtests/24h (5 concurrent), 10 active paper schedules (5,000 orders/month), 365-day analytics retention, email + Slack alerts.
+- **Upgrade prompts:** Informational banner at 70% usage, upgrade modal/email at 85%, hard stop paywall with plan comparison at quota breach; auto-pause paper trades on limit with Premium unlocking Slack notifications.
+
 #### Acceptance Criteria
 1. 1: Plan definitions specify quotas (strategies, backtests/day, paper runs) with usage tracking per account.
 2. 2: Over-limit attempts prompt upgrade CTAs and gated functionality messaging.
 3. 3: Premium activation via Stripe updates entitlements in near real-time and unlocks advanced analytics.
 4. 4: Billing events and receipts are auditable and exportable for finance review.
 
-_Implementation notes:_ Monetization manifest updates from the Sprint 0 quota workshop must be referenced here and in the release checklist before this story moves to development.
+_Implementation notes:_ Monetization manifest from the Sprint 0 quota workshop is stored at `docs/monetization/manifest.md`; Story 4.2 and the release checklist must link to it and implement the quotas, prompts, and instrumentation it defines before moving to development.
 
 ### Story 4.3 Compliance & Trust Framework
 As a compliance advisor,
