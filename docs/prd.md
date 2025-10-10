@@ -118,12 +118,14 @@ Blockbuilders combines a drag-and-drop strategy canvas, institutional-grade mark
 - Freemium plan enforcement, upgrade prompts, and Stripe-powered entitlements (FR7, Story 4.2).
 
 #### Out of Scope (MVP)
-- Educator cohort analytics beyond basic template adoption reporting (Story 3.3) — defer advanced segmentation and export tooling.
-- Insight engine recommendations and anomaly explanations requiring ML heuristics (Story 2.3) — keep KPI comparisons but exclude automated insights.
+- Educator automation and cohort analytics beyond basic template adoption reporting (Story 3.3) — begin only after MVP validation scorecard goals hold for three consecutive weeks.
+- Insight engine recommendations and anomaly explanations requiring ML heuristics (Story 2.3) — keep KPI comparisons but exclude automated insights until post-MVP validation unlocks Phase 3.
+- Template marketplace monetization levers (e.g., rev-share, paid template listings) — defer until the MVP is validated and community engagement targets are met.
 - Community moderation workflows for template governance beyond manual review queues (Story 4.1) — targeted for post-MVP automation.
 - Premium-only deep analytics (e.g., scenario stress testing, advanced drawdown attribution) — roadmap feature for premium tiers after validation of core usage.
 
 #### Deferred Enhancements & Future Phases
+- Unlock Phases 2 and 3 only after MVP validation KPIs (activation, time-to-value, engagement, trust) meet or exceed targets for three consecutive weeks.
 - Phase 2: Educator dashboards with cohort tagging, automated compliance workflows, and expanded sharing governance.
 - Phase 3: Insight engine, anomaly detection, and template marketplace monetization features.
 - Infrastructure roadmap: multi-region data replication, SSO integrations, and real-money trading partner integrations (pending regulatory review).
@@ -136,6 +138,7 @@ Blockbuilders combines a drag-and-drop strategy canvas, institutional-grade mark
 - **Net Trust Score (≥8/10)** — launch in-app survey at first completed paper-trade week; collect qualitative feedback tagged by theme for PM/UX review.
 - **Feedback Loops** — conduct bi-weekly beta interviews with a mix of new and returning builders, synthesize findings in research repository, and adjust roadmap accordingly.
 - **Release Readiness** — maintain a rolling beta scorecard combining KPIs above; greenlight broader GA marketing once activation + trust targets hold steady for three consecutive weeks.
+- **Post-MVP Gate** — educator automation, anomaly insight, and marketplace monetization tracks stay frozen until the beta scorecard confirms KPI targets for three consecutive weeks.
 
 ## User Experience Requirements
 
@@ -447,6 +450,8 @@ As an analytical user,
 I want rich reporting and comparison tools,
 so that I can interpret results and iterate faster.
 
+_Status:_ Phase 3 backlog; unlock after MVP validation confirms KPI targets for three consecutive weeks.
+
 #### Acceptance Criteria
 1. 1: Backtest results view visualizes KPIs, charts, and anomaly callouts with export to CSV/PDF.
 2. 2: Comparison dashboard allows selecting up to five strategies, highlighting deltas in KPIs and risk metrics.
@@ -484,6 +489,8 @@ As a community leader,
 I want to monitor my shared strategies and cohort engagement,
 so that I can support learners and highlight wins.
 
+_Status:_ Phase 2 backlog; begin only after MVP validation scorecard targets hold for three consecutive weeks.
+
 #### Acceptance Criteria
 1. 1: Educator dashboard lists shared templates, adopters, and their paper-trade performance summaries.
 2. 2: Cohort tagging groups learners for aggregated metrics and messaging.
@@ -493,6 +500,8 @@ so that I can support learners and highlight wins.
 ## Epic 4 Community Sharing & Monetization
 
 **Epic Goal:** Strengthen growth loops and revenue by enabling sharing, collaboration, and premium entitlements while keeping compliance and governance tight.
+
+_Post-MVP Note:_ Marketplace monetization mechanics and paid template flows remain Phase 3 items and should not start until MVP validation KPIs hold steady.
 
 ### Story 4.1 Template Sharing & Governance
 As a strategy author,
