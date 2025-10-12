@@ -95,6 +95,7 @@ To keep onboarding guidance consistent across web and backend audits, the checkl
 - Present callouts in linear order (`welcome-consent` → `canvas-tour` → `edit-parameters` → `run-first-backtest`) on first-run; allow replay from the onboarding drawer.
 - Disable primary CTAs until prerequisites complete (e.g., `welcome-consent` requires checkbox acknowledgement, `run-first-backtest` requires PlanUsage check).
 - Record completion timestamps per ID to support activation analytics dashboards.
+- Use the shared `assertBacktestQuota` guard (see `architecture/frontend-architecture.md#frontend-services-layer`) against the `['planUsage','backtests']` React Query cache before enabling the `run-first-backtest` CTA; if `used >= limit`, surface the upgrade modal with quota details pulled from the same query.
 
 ### Flow: Iterating on Strategy Blocks
 - Goal: Empower power users to tweak indicators and logic quickly.
