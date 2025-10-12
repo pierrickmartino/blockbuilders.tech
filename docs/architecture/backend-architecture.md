@@ -105,6 +105,13 @@ sequenceDiagram
   API-->>FE: Respond with role-aware payload
 ```
 
+### Simulation-Only Consent Metadata
+- `auth.users.app_metadata.consents.simulationOnly` is the canonical storage for simulation gating.
+- Structure: `{ acknowledged: boolean, acknowledgedAt: ISO8601 timestamp }`.
+- API requests fail with `403 Simulation consent required` until `acknowledged` is true.
+- Consent is persisted via FastAPI `POST /auth/consent`, which invokes Supabase admin REST API using the service role key.
+
+
 ### Middleware/Guards
 ```python
 from fastapi import Depends, HTTPException, status

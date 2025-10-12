@@ -109,6 +109,7 @@ export const useStrategyCanvas = create<CanvasState>()(
 - Mirror Supabase `app_metadata.roles` into store on login for consistent feature gating.
 - Hydrate plan quotas and usage counters from React Query selectors so quota modals render before API calls.
 - Maintain notification inbox state (unread counts, acknowledgements) independently to keep toasts and the notification center in sync.
+- Bootstrap demo workspaces through a dedicated `useWorkspaceStore` slice so starter nodes, edges, and history replay are available immediately after consent.
 
 ## Routing Architecture
 ### Route Organization
