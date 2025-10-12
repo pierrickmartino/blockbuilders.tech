@@ -81,6 +81,21 @@ flowchart TD
 - Edge Cases: Missing data connectors prompts; validation errors require inline guidance; free-tier limit messaging appears before run.
 - Success Metrics: Backtest completion rate, time to backtest, checklist completion.
 
+## Onboarding Checklist
+To keep onboarding guidance consistent across web and backend audits, the checklist/callout configuration below is the single source of truth. Any copy changes must be reflected here and in `packages/shared/onboarding/callouts.ts`.
+
+| ID | Trigger Location | Title / Headline | Body Copy | Primary CTA | Secondary Action | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `welcome-consent` | Dashboard redirect immediately after first login | "Welcome to Blockbuilders" | "Before we spin up your sandbox, confirm you understand everything here runs in simulation only. You can explore safely—no live capital is touched yet." | "Acknowledge & Continue" | "View Simulation Policy" (links to `/legal/simulation-policy`) | Checkbox state persists to Supabase `app_metadata.consents.simulationOnly`. |
+| `canvas-tour` | First open of strategy canvas | "Take a quick canvas tour" | "Learn how each block—from data to execution—connects in your strategy. We highlight the essentials so you can navigate with confidence." | "Start Tour" | "Skip for now" | Tour walks nodes in seeded order with inline highlights. |
+| `edit-parameters` | After tour completes or when user selects Indicator block | "Try editing your parameters" | "Tweak the EMA lengths to see how your strategy responds. We’ll validate settings automatically so you stay within best-practice guardrails." | "Edit EMA Settings" | "Learn More" (opens docs modal) | CTA focuses indicator sidebar; validation messaging references coding standards. |
+| `run-first-backtest` | After parameters edited or user lands on backtest panel | "Run your first backtest" | "Kick off a simulated run to review performance, risk, and next steps. You’re just one click from your first results." | "Run Backtest" | "Review Checklist" | Callout verifies quota via PlanUsage before enabling CTA. |
+
+**Checklist Behavior**
+- Present callouts in linear order (`welcome-consent` → `canvas-tour` → `edit-parameters` → `run-first-backtest`) on first-run; allow replay from the onboarding drawer.
+- Disable primary CTAs until prerequisites complete (e.g., `welcome-consent` requires checkbox acknowledgement, `run-first-backtest` requires PlanUsage check).
+- Record completion timestamps per ID to support activation analytics dashboards.
+
 ### Flow: Iterating on Strategy Blocks
 - Goal: Empower power users to tweak indicators and logic quickly.
 - Diagram:
