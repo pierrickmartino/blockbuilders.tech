@@ -10,3 +10,8 @@
 **Frontend:** Core Web Vitals, JS error rate, API latency (React Query), guided onboarding completion.
 
 **Backend:** Request rate, error rate, P95 latency, worker throughput, Redis queue depth, Timescale query performance.
+
+## Log Index Tags
+- `service:auth-gateway` – FastAPI auth endpoints and Supabase sync flows (Story 1.1 instrumentation target).
+- `service:workspace-seeding` – Demo workspace provisioning pipeline including strategy creation and onboarding callouts.
+- `env:{env}` – Deployment environment (`local`, `staging`, `prod`) for dashboards and monitors.
