@@ -97,6 +97,22 @@ To keep onboarding guidance consistent across web and backend audits, the checkl
 - Record completion timestamps per ID to support activation analytics dashboards.
 - Use the shared `assertBacktestQuota` guard (see `architecture/frontend-architecture.md#frontend-services-layer`) against the `['planUsage','backtests']` React Query cache before enabling the `run-first-backtest` CTA; if `used >= limit`, surface the upgrade modal with quota details pulled from the same query.
 
+## Quickstart Momentum Demo
+**Purpose:** Canonical starter strategy referenced by Story 1.1 to deliver the five-block onboarding experience.
+
+| Block Type | Configuration | Rationale |
+| --- | --- | --- |
+| Data Source | `BTC-USD`, timeframe `1d` | Liquid market with accessible history for deterministic demos. |
+| Indicator | EMA crossover, fast=12, slow=26 | Beginner-friendly momentum pattern with clear parameters. |
+| Signal Logic | Enter long on bullish crossover, exit on bearish crossover | Keeps logic easy to follow and matches educational copy. |
+| Risk Control | Position size ≤2% equity, stop-loss 3% | Demonstrates guardrails without advanced math. |
+| Execution | Paper-trading adapter | Reinforces simulation-only onboarding. |
+
+**Usage Notes**
+- Seed as StrategyVersion `v1` in onboarding workflows and expose editable parameters per Story 1.1.
+- Tooltips should explain each block’s role and encourage experimentation after the guided tour.
+- Demo analytics should highlight equity curve, win rate, and drawdown using mock data packaged with the seeding script.
+
 ### Flow: Iterating on Strategy Blocks
 - Goal: Empower power users to tweak indicators and logic quickly.
 - Diagram:
