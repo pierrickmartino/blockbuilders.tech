@@ -14,12 +14,16 @@ AUTH_HEADER = {"Authorization": "Bearer stub-token"}
 
 
 @pytest.mark.asyncio
-async def test_session_requires_consent(app, client):
-    app.dependency_overrides[SupabaseService] = lambda: SupabaseServiceStub(acknowledged=False)
+async def test_session_reflects_consent_state(app, client):
+    stub = SupabaseServiceStub(acknowledged=False)
+    app.dependency_overrides[SupabaseService] = lambda: stub
 
     response = await client.get("/api/v1/auth/session", headers=AUTH_HEADER)
 
-    assert response.status_code == 403
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["appMetadata"]["consents"]["simulationOnly"]["acknowledged"] is False
+    assert payload["appMetadata"]["consents"]["simulationOnly"]["acknowledgedAt"] is None
 
 
 @pytest.mark.asyncio
@@ -36,6 +40,29 @@ async def test_consent_persist_updates_metadata(app, client):
     assert session_response.status_code == 200
     payload = session_response.json()
     assert payload["appMetadata"]["consents"]["simulationOnly"]["acknowledged"] is True
+    assert payload["appMetadata"]["consents"]["simulationOnly"]["acknowledgedAt"] is not None
+
+
+@pytest.mark.asyncio
+async def test_strategy_creation_requires_consent(app, client):
+    stub = SupabaseServiceStub(acknowledged=False)
+    app.dependency_overrides[SupabaseService] = lambda: stub
+
+    response = await client.post("/api/v1/strategies", headers=AUTH_HEADER)
+
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_strategy_creation_succeeds_after_consent(app, client):
+    stub = SupabaseServiceStub(acknowledged=False)
+    app.dependency_overrides[SupabaseService] = lambda: stub
+
+    persist_response = await client.post("/api/v1/auth/consent", headers=AUTH_HEADER)
+    assert persist_response.status_code == 204
+
+    strategy_response = await client.post("/api/v1/strategies", headers=AUTH_HEADER)
+    assert strategy_response.status_code == 200
 
 
 @pytest.mark.asyncio

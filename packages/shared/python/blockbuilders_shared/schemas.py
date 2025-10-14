@@ -13,7 +13,14 @@ class SimulationConsent(BaseModel):
     """Tracks the user's acknowledgement of the simulation-only policy."""
 
     acknowledged: bool = Field(..., description="Whether the user accepted the simulation-only terms.")
-    acknowledged_at: datetime = Field(..., description="ISO-8601 timestamp when the consent was recorded.")
+    acknowledged_at: datetime | None = Field(
+        default=None,
+        alias="acknowledgedAt",
+        description="ISO-8601 timestamp when the consent was recorded.",
+    )
+
+    class Config:
+        populate_by_name = True
 
 
 class ConsentContainer(BaseModel):

@@ -8,6 +8,8 @@ from typing import Any, Dict
 import httpx
 from fastapi import HTTPException, status
 
+from pydantic import ValidationError
+
 from blockbuilders_shared import AppMetadata, SimulationConsent
 
 from ..core.config import settings
@@ -15,6 +17,17 @@ from ..models.auth import AuthenticatedUser
 
 USER_ENDPOINT = "/auth/v1/user"
 ADMIN_UPDATE_ENDPOINT = "/auth/v1/admin/users/{user_id}"
+
+
+def _empty_metadata() -> Dict[str, Any]:
+    return {
+        "consents": {
+            "simulationOnly": {
+                "acknowledged": False,
+                "acknowledgedAt": None,
+            }
+        }
+    }
 
 
 class SupabaseService:
@@ -36,9 +49,9 @@ class SupabaseService:
         payload = response.json()
 
         try:
-            metadata = AppMetadata.model_validate(payload.get("app_metadata", {}))
-        except Exception as error:  # pragma: no cover - defensive guard
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Missing consent metadata") from error
+            metadata = AppMetadata.model_validate(payload.get("app_metadata") or _empty_metadata())
+        except ValidationError:
+            metadata = AppMetadata.model_validate(_empty_metadata())
         return AuthenticatedUser(id=payload["id"], email=payload["email"], metadata=metadata)
 
     async def persist_simulation_consent(self, *, user_id: str) -> AppMetadata:

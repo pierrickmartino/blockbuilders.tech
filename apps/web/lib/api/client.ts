@@ -35,7 +35,7 @@ export async function fetchAuthSession(accessToken: string): Promise<AuthSession
   } satisfies AuthSession;
 }
 
-export async function persistSimulationConsent(accessToken: string): Promise<void> {
+export async function acknowledgeSimulationConsent(accessToken: string): Promise<void> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/consent`, {
     method: "POST",
     headers: {

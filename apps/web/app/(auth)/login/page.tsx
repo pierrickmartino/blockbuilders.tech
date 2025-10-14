@@ -24,6 +24,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const consentNotice =
+    searchParams?.get("error") === "consent"
+      ? "You must acknowledge the simulation-only policy before accessing the platform."
+      : null;
   const actionLabel = useMemo(() => (mode === "signin" ? "Sign In" : "Create Account"), [mode]);
   const nextPath = searchParams?.get("next") ?? DEFAULT_REDIRECT_PATH;
 
@@ -61,7 +65,7 @@ export default function LoginPage() {
       }
 
       try {
-        const seed = await completeOnboarding();
+        const seed = await completeOnboarding({ acknowledgeConsent: true });
         useWorkspaceStore.getState().loadWorkspace(seed);
       } catch (apiError) {
         console.error(apiError);
@@ -83,6 +87,7 @@ export default function LoginPage() {
       const redirectOrigin = AUTH_REDIRECT_BASE_URL ?? window.location.origin;
       const redirectTo = new URL("/api/auth/callback", redirectOrigin);
       redirectTo.searchParams.set("next", nextPath);
+      redirectTo.searchParams.set("consent", "true");
 
       const { error: signInError } = await supabase.auth.signInWithOAuth({
         provider,
@@ -104,6 +109,12 @@ export default function LoginPage() {
     <main>
       <h1>Welcome back</h1>
       <p>Authenticate with Supabase and launch into your guided BlockBuilders workspace.</p>
+
+      {consentNotice ? (
+        <p role="status" style={{ color: "#facc15" }}>
+          {consentNotice}
+        </p>
+      ) : null}
 
       <div className="button-row" role="tablist" aria-label="Authentication modes">
         <button

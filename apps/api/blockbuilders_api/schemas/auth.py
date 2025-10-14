@@ -9,7 +9,7 @@ from blockbuilders_shared import AppMetadata, SimulationConsent
 
 class SimulationConsentPayload(BaseModel):
     acknowledged: bool = Field(..., description="Flag indicating consent was granted.")
-    acknowledged_at: str = Field(..., alias="acknowledgedAt")
+    acknowledged_at: str | None = Field(default=None, alias="acknowledgedAt")
 
     class Config:
         populate_by_name = True
@@ -44,7 +44,7 @@ class AuthSession(BaseModel):
                 "consents": {
                     "simulationOnly": SimulationConsentPayload(
                         acknowledged=consent.acknowledged,
-                        acknowledgedAt=consent.acknowledged_at.isoformat(),
+                        acknowledgedAt=consent.acknowledged_at.isoformat() if consent.acknowledged_at else None,
                     )
                 }
             },

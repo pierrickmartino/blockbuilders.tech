@@ -20,7 +20,7 @@ pnpm install
 poetry install --sync --no-root --directory apps/api
 poetry install --sync --no-root --directory apps/workers
 cp .env.example .env
-cp .env.example apps/web/.env.local
+cp apps/web/.env.local.example apps/web/.env.local
 pre-commit install
 ```
 

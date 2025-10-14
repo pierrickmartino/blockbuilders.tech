@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from blockbuilders_shared import AuditEventType, StrategySeed
 
-from ..dependencies.auth import AuthenticatedUser, get_current_user
+from ..dependencies.auth import AuthenticatedUser, require_consent
 from ..services.audit import AuditService
 from ..services.workspace import WorkspaceService, get_workspace_service
 
@@ -15,7 +15,7 @@ router = APIRouter(tags=["strategies"])
 
 @router.post("/strategies", response_model=StrategySeed)
 async def create_strategy(
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_consent),
     workspace: WorkspaceService = Depends(get_workspace_service),
     audit: AuditService = Depends(AuditService),
 ) -> StrategySeed:
@@ -32,7 +32,7 @@ async def create_strategy(
 @router.post("/strategies/{strategy_id}/versions", response_model=StrategySeed)
 async def create_strategy_version(
     strategy_id: str,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_consent),
     workspace: WorkspaceService = Depends(get_workspace_service),
 ) -> StrategySeed:
     seed, _ = workspace.get_or_create_demo_workspace(user)

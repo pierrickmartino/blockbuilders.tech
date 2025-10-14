@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const simulationConsentSchema = z.object({
   acknowledged: z.boolean(),
-  acknowledgedAt: z.string().datetime({ offset: true })
+  acknowledgedAt: z.string().datetime({ offset: true }).nullable()
 });
 
 export type SimulationConsent = z.infer<typeof simulationConsentSchema>;

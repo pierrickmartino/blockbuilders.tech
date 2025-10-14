@@ -34,7 +34,7 @@ class SupabaseServiceStub(SupabaseService):
                 "consents": {
                     "simulationOnly": {
                         "acknowledged": acknowledged,
-                        "acknowledgedAt": "2024-01-01T00:00:00Z",
+                        "acknowledgedAt": "2024-01-01T00:00:00Z" if acknowledged else None,
                     }
                 }
             }

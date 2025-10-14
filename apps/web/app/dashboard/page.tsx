@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { completeOnboarding } from "@/lib/auth/onboarding";
+import { ConsentRequiredError, completeOnboarding } from "@/lib/auth/onboarding";
 import { supabase } from "@/lib/supabase/client";
 import { useWorkspaceStore } from "@/stores/workspace";
 
@@ -41,6 +41,12 @@ export default function DashboardPage() {
           loadWorkspace(demoSeed);
         }
       } catch (error) {
+        if (error instanceof ConsentRequiredError) {
+          if (isActive) {
+            router.push(`/(auth)/login?error=consent&next=${encodeURIComponent(DASHBOARD_PATH)}`);
+          }
+          return;
+        }
         console.error("Failed to bootstrap demo workspace", error);
       }
     }
