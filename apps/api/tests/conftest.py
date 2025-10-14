@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+API_SRC = PROJECT_ROOT / "apps" / "api"
+SHARED_SRC = PROJECT_ROOT / "packages" / "shared" / "python"
+
+for path in (API_SRC, SHARED_SRC):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from blockbuilders_shared import AppMetadata
 
