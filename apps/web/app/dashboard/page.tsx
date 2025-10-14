@@ -1,12 +1,57 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
+import { completeOnboarding } from "@/lib/auth/onboarding";
+import { supabase } from "@/lib/supabase/client";
 import { useWorkspaceStore } from "@/stores/workspace";
+
+const DASHBOARD_PATH = "/dashboard";
 
 export default function DashboardPage() {
   const seed = useWorkspaceStore((state) => state.seed);
   const nodes = useWorkspaceStore((state) => state.nodes);
+  const loadWorkspace = useWorkspaceStore((state) => state.loadWorkspace);
+  const router = useRouter();
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function bootstrapDemo() {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        if (isActive) {
+          router.push(`/login?next=${encodeURIComponent(DASHBOARD_PATH)}`);
+        }
+        return;
+      }
+
+      if (seed) {
+        return;
+      }
+
+      try {
+        const demoSeed = await completeOnboarding();
+        if (isActive) {
+          loadWorkspace(demoSeed);
+        }
+      } catch (error) {
+        console.error("Failed to bootstrap demo workspace", error);
+      }
+    }
+
+    bootstrapDemo();
+
+    return () => {
+      isActive = false;
+    };
+  }, [seed, loadWorkspace, router]);
+
   const callouts = seed?.callouts ?? [];
   const checklist = [
     "Review every block configuration",

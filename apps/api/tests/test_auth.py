@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from blockbuilders_shared import AppMetadata
+
+from blockbuilders_api.models.auth import AuthenticatedUser
 from blockbuilders_api.services.supabase import SupabaseService
 from blockbuilders_api.services.workspace import WorkspaceService, get_workspace_service
 
@@ -53,3 +56,39 @@ async def test_workspace_provision_logs_once(app, client, audit_service):
     workspace_events = [event for event in audit_service.history() if event.event_type.value == "WORKSPACE_CREATED"]
     assert len(workspace_events) == 1
     assert workspace_events[0].metadata["strategyId"].startswith("demo-")
+
+
+def test_workspace_seed_matches_spec():
+    workspace_service = WorkspaceService()
+    metadata = AppMetadata.model_validate(
+        {
+            "consents": {
+                "simulationOnly": {
+                    "acknowledged": True,
+                    "acknowledgedAt": "2024-01-01T00:00:00Z",
+                }
+            }
+        }
+    )
+    user = AuthenticatedUser(id="user-quickstart", email="demo@blockbuilders.tech", metadata=metadata)
+
+    seed, created = workspace_service.get_or_create_demo_workspace(user)
+    assert created is True
+
+    assert [block.kind for block in seed.blocks] == [
+        "data-source",
+        "indicator",
+        "signal",
+        "risk",
+        "execution",
+    ]
+    risk_block = next(block for block in seed.blocks if block.id == "node-risk")
+    assert risk_block.label == "Risk Control"
+    assert risk_block.config == {"positionSize": 0.02, "stopLoss": 0.03}
+
+    execution_block = next(block for block in seed.blocks if block.id == "node-execution")
+    assert execution_block.config == {"adapter": "paper-trading", "mode": "simulation"}
+
+    edge_targets = {(edge.source, edge.target) for edge in seed.edges}
+    assert ("node-signal", "node-risk") in edge_targets
+    assert ("node-risk", "node-execution") in edge_targets

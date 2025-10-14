@@ -1,18 +1,22 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Provider } from "@supabase/supabase-js";
 
-import { fetchAuthSession, persistSimulationConsent, bootstrapDemoWorkspace } from "@/lib/api/client";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { completeOnboarding } from "@/lib/auth/onboarding";
+import { supabase } from "@/lib/supabase/client";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const TERMS_URL = "https://blockbuilders.tech/legal/simulation-policy";
+const DEFAULT_REDIRECT_PATH = "/dashboard";
+const AUTH_REDIRECT_BASE_URL = process.env.NEXT_PUBLIC_AUTH_REDIRECT_BASE_URL;
 
 type AuthMode = "signin" | "signup";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,12 +25,25 @@ export default function LoginPage() {
   const [pending, startTransition] = useTransition();
 
   const actionLabel = useMemo(() => (mode === "signin" ? "Sign In" : "Create Account"), [mode]);
+  const nextPath = searchParams?.get("next") ?? DEFAULT_REDIRECT_PATH;
+
+  const oauthProviders: Array<{ id: Provider; label: string }> = [
+    { id: "google", label: "Continue with Google" },
+    { id: "github", label: "Continue with GitHub" }
+  ];
+
+  const ensureConsent = () => {
+    if (!consent) {
+      setError("You must acknowledge the simulation-only policy before continuing.");
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!consent) {
-      setError("You must acknowledge the simulation-only policy before continuing.");
+    if (!ensureConsent()) {
       return;
     }
 
@@ -43,17 +60,8 @@ export default function LoginPage() {
         return;
       }
 
-      const token = await getAccessToken();
-
-      if (!token) {
-        setError("Could not retrieve Supabase session token.");
-        return;
-      }
-
       try {
-        await persistSimulationConsent(token);
-        await fetchAuthSession(token);
-        const seed = await bootstrapDemoWorkspace(token);
+        const seed = await completeOnboarding();
         useWorkspaceStore.getState().loadWorkspace(seed);
       } catch (apiError) {
         console.error(apiError);
@@ -61,7 +69,32 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(nextPath);
+    });
+  };
+
+  const handleOAuthSignIn = (provider: Provider) => {
+    if (!ensureConsent()) {
+      return;
+    }
+
+    setError(null);
+    startTransition(async () => {
+      const redirectOrigin = AUTH_REDIRECT_BASE_URL ?? window.location.origin;
+      const redirectTo = new URL("/api/auth/callback", redirectOrigin);
+      redirectTo.searchParams.set("next", nextPath);
+
+      const { error: signInError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectTo.toString()
+        }
+      });
+
+      if (signInError) {
+        console.error(signInError);
+        setError(signInError.message);
+      }
     });
   };
 
@@ -148,6 +181,21 @@ export default function LoginPage() {
           </p>
         ) : null}
       </form>
+
+      <section style={{ marginTop: "2rem", display: "grid", gap: "0.75rem", maxWidth: "400px" }}>
+        <h2 style={{ margin: 0 }}>Or continue with</h2>
+        {oauthProviders.map((provider) => (
+          <button
+            key={provider.id}
+            type="button"
+            className="button"
+            onClick={() => handleOAuthSignIn(provider.id)}
+            disabled={!consent || pending}
+          >
+            {provider.label}
+          </button>
+        ))}
+      </section>
     </main>
   );
 }
