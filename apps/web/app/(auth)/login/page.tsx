@@ -120,6 +120,7 @@ export default function LoginPage() {
         <button
           type="button"
           className={`button ${mode === "signin" ? "primary" : ""}`}
+          role="tab"
           aria-selected={mode === "signin"}
           onClick={() => setMode("signin")}
           disabled={pending}
@@ -129,6 +130,7 @@ export default function LoginPage() {
         <button
           type="button"
           className={`button ${mode === "signup" ? "primary" : ""}`}
+          role="tab"
           aria-selected={mode === "signup"}
           onClick={() => setMode("signup")}
           disabled={pending}
