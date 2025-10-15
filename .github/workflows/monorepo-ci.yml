@@ -18,8 +18,8 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install
-      - run: pnpm turbo run lint --filter web
-      - run: pnpm turbo run test --filter web
+      - run: pnpm turbo run lint --filter @blockbuilders/web
+      - run: pnpm turbo run test --filter @blockbuilders/web
 
   api-tests:
     name: API Lint & Tests
