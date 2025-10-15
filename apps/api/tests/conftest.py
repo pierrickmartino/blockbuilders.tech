@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import sys
-from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import AsyncGenerator
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -61,13 +60,6 @@ class SupabaseServiceStub(SupabaseService):
 
 
 @pytest.fixture()
-def event_loop() -> AsyncIterator[asyncio.AbstractEventLoop]:
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture()
 def audit_service() -> AuditService:
     return AuditService()
 
@@ -79,7 +71,7 @@ def app(audit_service: AuditService):
     return application
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def client(app) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(app=app, base_url="http://testserver") as async_client:
         yield async_client
