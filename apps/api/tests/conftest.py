@@ -21,6 +21,8 @@ from blockbuilders_shared import AppMetadata
 from blockbuilders_api.main import create_app
 from blockbuilders_api.models.auth import AuthenticatedUser
 from blockbuilders_api.services.audit import AuditService
+from blockbuilders_api.repositories.plan_usage import PlanUsageRepository
+from blockbuilders_api.services.plan_usage import PlanUsageService, get_plan_usage_service
 from blockbuilders_api.services.supabase import SupabaseService
 
 
@@ -65,9 +67,15 @@ def audit_service() -> AuditService:
 
 
 @pytest.fixture()
-def app(audit_service: AuditService):
+def plan_usage_service() -> PlanUsageService:
+    return PlanUsageService(repo=PlanUsageRepository())
+
+
+@pytest.fixture()
+def app(audit_service: AuditService, plan_usage_service: PlanUsageService):
     application = create_app()
     application.dependency_overrides[AuditService] = lambda: audit_service
+    application.dependency_overrides[get_plan_usage_service] = lambda: plan_usage_service
     return application
 
 

@@ -5,6 +5,8 @@ from .schemas import (
     AuditLogEvent,
     AppMetadata,
     OnboardingCallout,
+    PlanUsage,
+    PlanUsageMetric,
     SimulationConsent,
     StrategyBlock,
     StrategyEdge,
@@ -20,4 +22,6 @@ __all__ = [
     "StrategyEdge",
     "StrategySeed",
     "OnboardingCallout",
+    "PlanUsage",
+    "PlanUsageMetric",
 ]

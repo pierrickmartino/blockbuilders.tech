@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from .routers import auth, strategies
+from .routers import auth, plan_usage, strategies
 from .services.audit import AuditService
 
 
@@ -14,6 +14,7 @@ def create_app() -> FastAPI:
     app.dependency_overrides[AuditService] = lambda: audit_service
 
     app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(plan_usage.router, prefix="/api/v1")
     app.include_router(strategies.router, prefix="/api/v1")
 
     @app.get("/healthz", tags=["health"])

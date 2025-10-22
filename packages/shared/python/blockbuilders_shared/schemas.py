@@ -87,3 +87,23 @@ class StrategySeed(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+class PlanUsageMetric(str, Enum):
+    BACKTESTS = "backtests"
+    PAPER_TRADES = "paper_trades"
+    TEMPLATE_PUBLISHES = "template_publishes"
+
+
+class PlanUsage(BaseModel):
+    id: str
+    user_id: str = Field(alias="userId")
+    metric: PlanUsageMetric
+    window_start: datetime = Field(alias="windowStart")
+    window_end: datetime = Field(alias="windowEnd")
+    used: int
+    limit: int
+    updated_at: datetime = Field(alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
