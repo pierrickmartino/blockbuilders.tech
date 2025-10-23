@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Response, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from blockbuilders_shared import PlanUsage, PlanUsageMetric
 
@@ -20,7 +20,7 @@ router = APIRouter(tags=["plan-usage"])
 
 class PlanUsageAssertRequest(BaseModel):
     metric: PlanUsageMetric
-    amount: int = 1
+    amount: int = Field(default=1, gt=0)
 
 
 @router.get("/plan-usage/{metric}", response_model=PlanUsage)
