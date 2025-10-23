@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -9,7 +10,10 @@ export async function GET(request: Request) {
   const shouldPersistConsent = requestUrl.searchParams.get("consent") === "true";
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient({
+      cookies,
+      cookieOptions: getSupabaseCookieOptions()
+    });
     await supabase.auth.exchangeCodeForSession(code);
 
     if (shouldPersistConsent) {

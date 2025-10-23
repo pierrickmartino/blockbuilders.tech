@@ -1,16 +1,9 @@
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
-const ONE_HOUR_IN_SECONDS = 60 * 60;
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 export const supabase = createBrowserSupabaseClient({
-  cookieOptions: {
-    name: "bb-auth-token",
-    lifetime: ONE_HOUR_IN_SECONDS,
-    domain: process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? undefined,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
-  }
+  cookieOptions: getSupabaseCookieOptions()
 });
 
 export async function getAccessToken(): Promise<string | null> {

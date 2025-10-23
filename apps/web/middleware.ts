@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { appMetadataSchema } from "@blockbuilders/shared";
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 const PROTECTED_PATH_PREFIXES = ["/dashboard"];
 
@@ -22,7 +23,11 @@ function buildRedirectUrl(request: NextRequest, reason: "login" | "consent"): UR
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: request.headers } });
-  const supabase = createMiddlewareClient({ req: request, res: response });
+  const supabase = createMiddlewareClient({
+    req: request,
+    res: response,
+    cookieOptions: getSupabaseCookieOptions()
+  });
 
   const {
     data: { session }
