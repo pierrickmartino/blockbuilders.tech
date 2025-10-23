@@ -1,0 +1,15 @@
+{
+  "name": "blockbuilders-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "dev": "pnpm turbo run dev",
+    "build": "pnpm turbo run build",
+    "lint": "pnpm turbo run lint",
+    "test": "pnpm turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.1"
+  }
+}

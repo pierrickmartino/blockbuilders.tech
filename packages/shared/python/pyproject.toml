@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "blockbuilders-shared"
+version = "0.1.0"
+description = "Shared Pydantic contracts for the BlockBuilders platform."
+authors = ["BlockBuilders Engineering <engineering@blockbuilders.tech>"]
+packages = [{ include = "blockbuilders_shared" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.7.0"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"

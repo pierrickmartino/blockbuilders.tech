@@ -1,1 +1,26 @@
 # BMAD (local only)
+
+# Node
+node_modules/
+.pnpm-store/
+.next/
+apps/web/.next/
+apps/web/out/
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+.env.local
+.env.*
+.venv/
+poetry.lock
+
+# Logs
+*.log
+coverage/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

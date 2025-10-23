@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "blockbuilders-workers"
+version = "0.1.0"
+description = "Celery workers for asynchronous workloads"
+authors = ["BlockBuilders Engineering <engineering@blockbuilders.tech>"]
+packages = [{ include = "blockbuilders_workers" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+celery = "^5.3.6"
+redis = "^5.0.3"
+blockbuilders-shared = { path = "../../packages/shared/python", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"

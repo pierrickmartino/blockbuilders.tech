@@ -1,0 +1,56 @@
+name: monorepo-ci
+
+on:
+  push:
+    branches: ["main", "1.1-dev", "release-*"]
+  pull_request:
+    branches: ["main", "1.1-dev", "release-*"]
+
+jobs:
+  install-node-deps:
+    name: Frontend Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm turbo run lint --filter @blockbuilders/web
+      - run: pnpm turbo run test --filter @blockbuilders/web
+
+  api-tests:
+    name: API Lint & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: poetry install --sync --no-root
+      - name: Run API tests
+        working-directory: apps/api
+        run: poetry run pytest
+
+  worker-tests:
+    name: Worker Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install worker dependencies
+        working-directory: apps/workers
+        run: poetry install --sync --no-root
+      - name: Run worker tests
+        working-directory: apps/workers
+        run: poetry run pytest
