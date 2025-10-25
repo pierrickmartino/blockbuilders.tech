@@ -54,18 +54,19 @@ export default function LoginPage() {
     setError(null);
     startTransition(async () => {
       const credentials = { email, password };
-      const response =
+      const result =
         mode === "signin"
           ? await supabase.auth.signInWithPassword(credentials)
           : await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: window.location.origin } });
 
-      if (response.error) {
-        setError(response.error.message);
+      if (result.error) {
+        setError(result.error.message);
         return;
       }
 
       try {
-        const seed = await completeOnboarding({ acknowledgeConsent: true });
+        const accessToken = result.data?.session?.access_token ?? null;
+        const seed = await completeOnboarding({ acknowledgeConsent: true, accessToken });
         useWorkspaceStore.getState().loadWorkspace(seed);
       } catch (apiError) {
         console.error(apiError);

@@ -24,16 +24,18 @@ function assertConsentAcknowledged(session: AuthSession): void {
 
 type CompleteOnboardingOptions = {
   acknowledgeConsent?: boolean;
+  accessToken?: string | null;
 };
 
 export async function completeOnboarding(options: CompleteOnboardingOptions = {}): Promise<StrategySeed> {
-  const token = await getAccessToken();
+  const { acknowledgeConsent = false, accessToken } = options;
+  const token = accessToken ?? (await getAccessToken());
 
   if (!token) {
     throw new Error("Supabase session token unavailable");
   }
 
-  if (options.acknowledgeConsent) {
+  if (acknowledgeConsent) {
     await acknowledgeSimulationConsent(token);
   }
 
