@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List
@@ -29,6 +30,7 @@ class ComplianceRepository:
             "occurred_at": event.created_at.isoformat(),
             "strategy_id": metadata.get("strategyId"),
             "version_id": metadata.get("versionId"),
+            "metadata": json.dumps(metadata, sort_keys=True) if metadata else "{}",
         }
         self._records.append(record)
         self.export_snapshot()
@@ -42,7 +44,15 @@ class ComplianceRepository:
         with self.export_path.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.DictWriter(
                 handle,
-                fieldnames=["event_id", "event_type", "actor_id", "occurred_at", "strategy_id", "version_id"],
+                fieldnames=[
+                    "event_id",
+                    "event_type",
+                    "actor_id",
+                    "occurred_at",
+                    "strategy_id",
+                    "version_id",
+                    "metadata",
+                ],
             )
             writer.writeheader()
             writer.writerows(self._records)

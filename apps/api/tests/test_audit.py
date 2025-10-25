@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from blockbuilders_shared import AuditEventType
@@ -43,3 +45,29 @@ async def test_audit_service_streams_to_observability(tmp_path):
     history = notifications.history()
     assert len(history) == 1
     assert history[0]["eventType"] == "WORKSPACE_CREATED"
+
+
+@pytest.mark.asyncio
+async def test_auth_events_persist_to_compliance(tmp_path):
+    compliance_path = tmp_path / "audit.csv"
+    compliance = ComplianceRepository(export_path=compliance_path)
+    service = AuditService(compliance=compliance)
+
+    login_event = await service.record(actor_id="user-456", event_type=AuditEventType.AUTH_LOGIN)
+    consent_event = await service.record(
+        actor_id="user-456",
+        event_type=AuditEventType.CONSENT_ACKNOWLEDGED,
+        metadata={"ipAddress": "127.0.0.1"},
+    )
+
+    assert login_event.id != consent_event.id
+
+    records = compliance.all()
+    assert [record["event_type"] for record in records] == ["AUTH_LOGIN", "CONSENT_ACKNOWLEDGED"]
+
+    consent_metadata = json.loads(records[1]["metadata"] or "{}")
+    assert consent_metadata == {"ipAddress": "127.0.0.1"}
+
+    contents = compliance_path.read_text().splitlines()
+    assert "AUTH_LOGIN" in contents[1]
+    assert "CONSENT_ACKNOWLEDGED" in contents[2]
