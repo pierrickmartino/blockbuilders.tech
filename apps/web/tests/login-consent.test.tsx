@@ -6,8 +6,12 @@ import LoginPage from "@/app/(auth)/login/page";
 
 const pushMock = vi.hoisted(() => vi.fn());
 const loadWorkspaceMock = vi.hoisted(() => vi.fn());
-const signInWithPasswordMock = vi.hoisted(() => vi.fn().mockResolvedValue({ data: {}, error: null }));
-const signUpMock = vi.hoisted(() => vi.fn().mockResolvedValue({ data: {}, error: null }));
+const signInWithPasswordMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { session: { access_token: "signin-token" } }, error: null })
+);
+const signUpMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { session: { access_token: "signup-token" } }, error: null })
+);
 const signInWithOAuthMock = vi.hoisted(() => vi.fn().mockResolvedValue({ data: {}, error: null }));
 const completeOnboardingMock = vi.hoisted(() =>
   vi.fn().mockResolvedValue({
@@ -110,5 +114,30 @@ describe("LoginPage consent gating", () => {
     const redirectUrl = new URL(call.options.redirectTo);
     expect(redirectUrl.searchParams.get("consent")).toBe("true");
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
+  });
+
+  it("passes the active session access token into onboarding flow after sign-up", async () => {
+    render(<LoginPage />);
+
+    const signUpTab = screen.getByRole("tab", { name: "Sign Up" });
+    fireEvent.click(signUpTab);
+
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "demo@blockbuilders.tech" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sufficientlySecure1!" } });
+
+    const consentCheckbox = screen.getByRole("checkbox", { name: /simulation-only/i });
+    fireEvent.click(consentCheckbox);
+
+    const submitButton = screen
+      .getAllByRole("button", { name: "Create Account" })
+      .find((button) => (button as HTMLButtonElement).type === "submit") as HTMLButtonElement;
+
+    fireEvent.submit(submitButton.closest("form")!);
+
+    await waitFor(() =>
+      expect(completeOnboardingMock).toHaveBeenCalledWith(
+        expect.objectContaining({ acknowledgeConsent: true, accessToken: "signup-token" })
+      )
+    );
   });
 });
