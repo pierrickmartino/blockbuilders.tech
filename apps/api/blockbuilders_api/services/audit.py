@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List
+from uuid import uuid4
 
 from blockbuilders_shared import AuditEventType, AuditLogEvent
 
@@ -33,7 +34,7 @@ class AuditService:
         metadata: Dict[str, str] | None = None,
     ) -> AuditLogEvent:
         event = AuditLogEvent(
-            id=f"evt_{len(self._events) + 1}",
+            id=f"evt_{uuid4().hex}",
             actor_id=actor_id,
             event_type=event_type,
             created_at=datetime.now(timezone.utc),
@@ -44,7 +45,7 @@ class AuditService:
         if self.datadog:
             await self.datadog.send_event(event)
 
-        if self.compliance and event.event_type == AuditEventType.WORKSPACE_CREATED:
+        if self.compliance:
             try:
                 self.compliance.record(event)
             except Exception as exc:  # pragma: no cover - defensive logging
