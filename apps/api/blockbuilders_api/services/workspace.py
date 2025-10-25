@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from blockbuilders_shared import StrategySeed
+from blockbuilders_shared import ONBOARDING_CALLOUTS, StrategySeed
 
 from ..models.auth import AuthenticatedUser
 
@@ -60,30 +60,7 @@ def _build_demo_seed(user_id: str) -> StrategySeed:
                 {"id": "edge-4", "source": "node-risk", "target": "node-execution"},
             ],
             "callouts": [
-                {
-                    "id": "callout-data",
-                    "title": "Data Source",
-                    "description": "We pre-loaded BTC-USD daily candles so you can focus on signal design.",
-                    "actionText": "Inspect feed",
-                },
-                {
-                    "id": "callout-indicator",
-                    "title": "Indicator",
-                    "description": "EMA crossover parameters are editable—try experimenting with different windows.",
-                    "actionText": "Adjust EMA",
-                },
-                {
-                    "id": "callout-risk",
-                    "title": "Risk Controls",
-                    "description": "Position size is capped at 2% with a 3% stop-loss—tune these to fit your strategy discipline.",
-                    "actionText": "Review guardrails",
-                },
-                {
-                    "id": "callout-run",
-                    "title": "Run your first backtest",
-                    "description": "Launch the quickstart backtest to understand how results and audit logging work.",
-                    "actionText": "Run backtest",
-                },
+                callout.model_dump(by_alias=True) for callout in ONBOARDING_CALLOUTS
             ],
         }
     )

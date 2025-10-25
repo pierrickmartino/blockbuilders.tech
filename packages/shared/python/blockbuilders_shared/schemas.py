@@ -66,10 +66,19 @@ class StrategyEdge(BaseModel):
     target: str
 
 
+class CalloutAction(BaseModel):
+    label: str
+    href: Optional[str] = None
+
+
 class OnboardingCallout(BaseModel):
     id: str
     title: str
     description: str
+    trigger: Optional[str] = None
+    order: Optional[int] = None
+    primary_action: Optional[CalloutAction] = Field(default=None, alias="primaryAction")
+    secondary_action: Optional[CalloutAction] = Field(default=None, alias="secondaryAction")
     action_text: Optional[str] = Field(default=None, alias="actionText")
 
     class Config:

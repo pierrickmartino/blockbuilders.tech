@@ -21,7 +21,7 @@ async def read_session(
 ) -> AuthSession:
     """Return the authenticated user's profile and persist an audit trail."""
 
-    audit.record(actor_id=user.id, event_type=AuditEventType.AUTH_LOGIN)
+    await audit.record(actor_id=user.id, event_type=AuditEventType.AUTH_LOGIN)
     return AuthSession.from_metadata(user_id=user.id, email=user.email, metadata=user.metadata)
 
 
@@ -35,5 +35,5 @@ async def persist_consent(
 
     metadata = await supabase.persist_simulation_consent(user_id=user.id)
     user.metadata = metadata
-    audit.record(actor_id=user.id, event_type=AuditEventType.CONSENT_ACKNOWLEDGED)
+    await audit.record(actor_id=user.id, event_type=AuditEventType.CONSENT_ACKNOWLEDGED)
     return Response(status_code=204)

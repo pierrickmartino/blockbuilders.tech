@@ -1,0 +1,2 @@
+event_id,event_type,actor_id,occurred_at,strategy_id,version_id
+evt_1,WORKSPACE_CREATED,user-demo,2024-01-01T00:00:00+00:00,demo-user,demo-v1

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from blockbuilders_shared import AppMetadata
+from blockbuilders_shared import AppMetadata, ONBOARDING_CALLOUT_ORDER
 
 from blockbuilders_api.models.auth import AuthenticatedUser
 from blockbuilders_api.services.supabase import SupabaseService
@@ -119,3 +119,5 @@ def test_workspace_seed_matches_spec():
     edge_targets = {(edge.source, edge.target) for edge in seed.edges}
     assert ("node-signal", "node-risk") in edge_targets
     assert ("node-risk", "node-execution") in edge_targets
+
+    assert [callout.id for callout in seed.callouts] == ONBOARDING_CALLOUT_ORDER

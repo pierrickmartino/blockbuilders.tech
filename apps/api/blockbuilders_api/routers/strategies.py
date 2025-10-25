@@ -33,7 +33,7 @@ async def create_strategy(
 
     seed, created = workspace.get_or_create_demo_workspace(user)
     if created:
-        audit.record(
+        await audit.record(
             actor_id=user.id,
             event_type=AuditEventType.WORKSPACE_CREATED,
             metadata=workspace.audit_metadata(seed),

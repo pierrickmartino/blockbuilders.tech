@@ -6,6 +6,9 @@
       "@/*": [
         "./*"
       ],
+      "@blockbuilders/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
       "@blockbuilders/shared/*": [
         "../../packages/shared/src/*"
       ]

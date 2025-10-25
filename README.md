@@ -36,6 +36,7 @@ Useful one-offs:
 - `pnpm --filter web dev` — frontend only
 - `make api-dev` — FastAPI with reload (wraps `uvicorn`)
 - `pnpm turbo run test` / `poetry run pytest` — JS/TS and Python tests
+- `python scripts/mock_datadog_agent.py --port 8282` — local Datadog shim that echoes audit log payloads for instrumentation checks
 
 Environment variables are documented in `docs/architecture.md#environment-configuration`. Copy `.env.example` as above and fill in Supabase, Stripe, and AWS secrets from 1Password.
 

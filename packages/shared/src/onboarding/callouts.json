@@ -1,0 +1,56 @@
+[
+  {
+    "id": "welcome-consent",
+    "title": "Welcome to BlockBuilders",
+    "description": "Before we spin up your sandbox, confirm you understand everything here runs in simulation only. You can explore safely - no live capital is touched yet.",
+    "trigger": "dashboard-redirect",
+    "order": 1,
+    "primaryAction": {
+      "label": "Acknowledge & Continue"
+    },
+    "secondaryAction": {
+      "label": "View Simulation Policy",
+      "href": "/legal/simulation-policy"
+    }
+  },
+  {
+    "id": "canvas-tour",
+    "title": "Take a quick canvas tour",
+    "description": "Learn how each block - from data to execution - connects in your strategy. We highlight the essentials so you can navigate with confidence.",
+    "trigger": "strategy-canvas-first-open",
+    "order": 2,
+    "primaryAction": {
+      "label": "Start Tour"
+    },
+    "secondaryAction": {
+      "label": "Skip for now"
+    }
+  },
+  {
+    "id": "edit-parameters",
+    "title": "Try editing your parameters",
+    "description": "Tweak the EMA lengths to see how your strategy responds. We will validate settings automatically so you stay within best-practice guardrails.",
+    "trigger": "indicator-selected",
+    "order": 3,
+    "primaryAction": {
+      "label": "Edit EMA Settings"
+    },
+    "secondaryAction": {
+      "label": "Learn More",
+      "href": "/docs"
+    }
+  },
+  {
+    "id": "run-first-backtest",
+    "title": "Run your first backtest",
+    "description": "Kick off a simulated run to review performance, risk, and next steps. You are just one click from your first results.",
+    "trigger": "backtest-panel",
+    "order": 4,
+    "primaryAction": {
+      "label": "Run Backtest"
+    },
+    "secondaryAction": {
+      "label": "Review Checklist"
+    }
+  }
+]

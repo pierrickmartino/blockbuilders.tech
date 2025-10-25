@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import { ConsentRequiredError, completeOnboarding } from "@/lib/auth/onboarding";
 import { supabase } from "@/lib/supabase/client";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { getOnboardingCallout, onboardingCallouts } from "@blockbuilders/shared";
 
 const DASHBOARD_PATH = "/dashboard";
 
@@ -58,7 +59,15 @@ export default function DashboardPage() {
     };
   }, [seed, loadWorkspace, router]);
 
-  const callouts = seed?.callouts ?? [];
+  const resolvedCallouts = useMemo(() => {
+    const source = seed?.callouts ?? onboardingCallouts;
+    return source
+      .map((callout) => {
+        const canonical = getOnboardingCallout(callout.id);
+        return canonical ? { ...canonical, ...callout } : callout;
+      })
+      .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
+  }, [seed]);
   const checklist = [
     "Review every block configuration",
     "Run the quickstart backtest",
@@ -73,17 +82,34 @@ export default function DashboardPage() {
         experience the full analytics flow.
       </p>
 
-      {callouts.length > 0 ? (
+      {resolvedCallouts.length > 0 ? (
         <section style={{ display: "grid", gap: "1rem", marginBottom: "2rem" }}>
-          {callouts.map((callout) => (
+          {resolvedCallouts.map((callout) => (
             <article key={callout.id} style={{ padding: "1.25rem", borderRadius: "1rem", background: "rgba(15,23,42,0.6)" }}>
               <h2 style={{ margin: "0 0 0.5rem" }}>{callout.title}</h2>
               <p style={{ margin: 0 }}>{callout.description}</p>
-              {callout.actionText ? (
-                <button className="button" style={{ marginTop: "1rem" }}>
-                  {callout.actionText}
-                </button>
-              ) : null}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginTop: "1rem" }}>
+                {callout.primaryAction ? (
+                  <button className="button primary" type="button">
+                    {callout.primaryAction.label}
+                  </button>
+                ) : callout.actionText ? (
+                  <button className="button" type="button">
+                    {callout.actionText}
+                  </button>
+                ) : null}
+                {callout.secondaryAction ? (
+                  callout.secondaryAction.href ? (
+                    <Link className="button" href={callout.secondaryAction.href}>
+                      {callout.secondaryAction.label}
+                    </Link>
+                  ) : (
+                    <button className="button" type="button">
+                      {callout.secondaryAction.label}
+                    </button>
+                  )
+                ) : null}
+              </div>
             </article>
           ))}
         </section>
