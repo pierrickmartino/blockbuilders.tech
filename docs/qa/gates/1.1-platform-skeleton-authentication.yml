@@ -1,0 +1,57 @@
+schema: 1
+story: '1.1'
+story_title: 'Platform Skeleton & Authentication'
+gate: FAIL
+status_reason: 'Auth audit data still lacks durable coverage and multiple P0 consent/CI tests remain unimplemented.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-10-25T19:27:29Z'
+top_issues:
+  - id: SEC-AUD-001
+    severity: high
+    summary: 'AUTH_LOGIN and CONSENT_ACKNOWLEDGED events are not persisted to the compliance sink, so audit history evaporates on restart.'
+    refs:
+      - apps/api/blockbuilders_api/services/audit.py:32
+      - apps/api/blockbuilders_api/repositories/compliance.py:24
+    suggested_owner: dev
+  - id: TEST-COVERAGE-001
+    severity: high
+    summary: 'Planned P0 tests for consent gating, OAuth flows, and CI workflow validation are still missing; only two Vitest suites execute on the frontend.'
+    refs:
+      - docs/qa/assessments/1.1-test-design-20251011.md:24
+      - apps/web/tests/onboarding-callouts.test.ts:1
+    suggested_owner: dev
+waiver:
+  active: false
+quality_score: 40
+expires: '2025-11-08T19:27:29Z'
+evidence:
+  tests_reviewed: 3
+  risks_identified: 2
+  trace:
+    ac_covered: [2, 3]
+    ac_gaps: [1, 4]
+nfr_validation:
+  security:
+    status: CONCERNS
+    notes: 'Consent enforcement works, but missing rate limiting and OAuth hardening coverage leave security requirements unmet.'
+  performance:
+    status: CONCERNS
+    notes: 'No latency instrumentation or performance probes added for the login → dashboard flow.'
+  reliability:
+    status: FAIL
+    notes: 'Audit logging for auth events is still in-memory only, providing no durable audit trail.'
+  maintainability:
+    status: CONCERNS
+    notes: 'Critical P0 automated tests called out in the test design are absent, leaving regressions undetected.'
+recommendations:
+  immediate:
+    - action: 'Persist AUTH_LOGIN and CONSENT_ACKNOWLEDGED audit events to the compliance repository (or a database table) and add regression coverage.'
+      refs:
+        - apps/api/blockbuilders_api/services/audit.py:32
+    - action: 'Implement the missing P0 suites (Next.js consent middleware integration, OAuth E2E gate, CI workflow dry run) and hook them into CI.'
+      refs:
+        - docs/qa/assessments/1.1-test-design-20251011.md:51
+  future:
+    - action: 'Introduce FastAPI rate limiting and telemetry instrumentation per the security/performance standards.'
+      refs:
+        - docs/architecture/security-and-performance.md:8
