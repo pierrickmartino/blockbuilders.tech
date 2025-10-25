@@ -2,7 +2,7 @@
   "name": "blockbuilders-monorepo",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@8.15.4",
+  "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "pnpm turbo run dev",
     "build": "pnpm turbo run build",
