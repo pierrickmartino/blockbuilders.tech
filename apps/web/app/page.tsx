@@ -8,7 +8,7 @@ export default function LandingPage() {
         Bootstrapped monorepo ready for authentication, compliance logging, and guided strategy building.
       </p>
       <div className="button-row">
-        <Link className="button primary" href="/(auth)/login">
+        <Link className="button primary" href="/login">
           Sign In
         </Link>
         <Link className="button" href="/docs">
