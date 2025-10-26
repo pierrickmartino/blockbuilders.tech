@@ -51,21 +51,6 @@ async def test_plan_usage_assert_rejects_non_positive_amount(app, client, amount
     detail = response.json()["detail"]
     assert any(error.get("loc", [])[-1] == "amount" for error in detail)
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize("amount", [0, -1])
-async def test_plan_usage_assert_rejects_non_positive_amount(app, client, amount):
-    app.dependency_overrides[SupabaseService] = lambda: SupabaseServiceStub(acknowledged=True)
-
-    response = await client.post(
-        "/api/v1/plan-usage/assert",
-        headers=AUTH_HEADER,
-        json={"metric": "backtests", "amount": amount},
-    )
-
-    assert response.status_code == 422
-    detail = response.json()["detail"]
-    assert any(error.get("loc", [])[-1] == "amount" for error in detail)
-
 
 @pytest.mark.asyncio
 async def test_plan_usage_assert_blocks_when_over_limit(app, client, plan_usage_service: PlanUsageService):

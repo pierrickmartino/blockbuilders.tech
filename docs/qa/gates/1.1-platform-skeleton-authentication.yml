@@ -1,44 +1,45 @@
 schema: 1
 story: '1.1'
 story_title: 'Platform Skeleton & Authentication'
-gate: FAIL
-status_reason: 'Blocking regression: Supabase consent persistence throws TypeError during JSON encoding (`apps/api/blockbuilders_api/services/supabase.py:57`), so POST /auth/consent 500s and compliance trails never record consent.'
+gate: PASS
+status_reason: 'Consent serialization fix restores 204 responses and audit fan-out; Vitest + FastAPI + worker pytest suites all green. Only remaining risk is offline Playwright smoke still pending.'
 reviewer: 'Quinn (Test Architect & Quality Advisor)'
-updated: '2025-11-01T18:45:00Z'
+updated: '2025-11-02T20:55:00Z'
 top_issues:
-  - 'apps/api/blockbuilders_api/services/supabase.py#L57 – Consent payload ships raw datetime, HTTPX JSON encoder raises TypeError, consent endpoint fails.'
+  - 'tests/e2e/onboarding.spec.ts – Playwright package install blocked offline; rerun once registry access returns.'
 waiver:
   active: false
-quality_score: 40
-expires: '2025-12-15T18:45:00Z'
+quality_score: 85
+expires: '2025-12-31T20:55:00Z'
 evidence:
-  tests_reviewed: 5
+  tests_reviewed: 6
   risks_identified: 1
   trace:
-    ac_covered: [1, 3]
-    ac_gaps: [2, 4]
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
 nfr_validation:
   security:
     status: CONCERNS
-    notes: 'Conceptual consent/OAuth gating still solid, but regression prevents persistence; rate limiting and OAuth hardening still pending.'
+    notes: 'Rate limiting and OAuth provider hardening still outstanding relative to security blueprint.'
   performance:
     status: CONCERNS
-    notes: 'Login → dashboard instrumentation is still pending to validate latency targets.'
+    notes: 'Login→dashboard flow lacks latency instrumentation or synthetic coverage.'
   reliability:
-    status: FAIL
-    notes: 'Consent API 500 blocks onboarding and audit/compliance persistence; regression must be fixed prior to release.'
-  maintainability:
     status: PASS
-    notes: 'P0 automation covers consent gating/OAuth flows and compliance persistence, reducing regression risk.'
+    notes: 'Consent API returns 204 and metadata updates verified via pytest (`test_consent_persist_updates_metadata`).'
+  maintainability:
+    status: CONCERNS
+    notes: 'Pydantic v2 config warnings and duplicate plan-usage negative amount tests should be tidied.'
 recommendations:
   immediate:
-    - action: 'Fix Supabase consent payload serialization: emit ISO-8601 (e.g., `model_dump(mode=\"json\", by_alias=True)`) so POST /auth/consent no longer 500s.'
+    - action: 'Run Playwright smoke (`npx playwright test tests/e2e/onboarding.spec.ts`) once `@playwright/test` install is possible to confirm consent/OAuth UI in browsers.'
       refs:
-        - apps/api/blockbuilders_api/services/supabase.py#L57
-    - action: 'Monitor the compliance export path in staging over a full day to confirm auth events accumulate without loss.'
+        - tests/e2e/onboarding.spec.ts
+    - action: 'Resolve Pydantic ConfigDeprecation warnings by migrating to ConfigDict and dedupe `test_plan_usage_assert_rejects_non_positive_amount`.'
       refs:
-        - docs/ops/audit-log-sample.csv
+        - packages/shared/python/blockbuilders_shared/schemas.py:12
+        - apps/api/tests/test_plan_usage.py:39
   future:
-    - action: 'Introduce FastAPI rate limiting and telemetry instrumentation per the security/performance standards.'
+    - action: 'Implement FastAPI-side rate limiting/telemetry per security standards to close remaining CONCERNS.'
       refs:
         - docs/architecture/security-and-performance.md:8
