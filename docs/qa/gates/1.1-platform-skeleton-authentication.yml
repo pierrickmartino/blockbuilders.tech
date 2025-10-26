@@ -1,36 +1,40 @@
 schema: 1
 story: '1.1'
 story_title: 'Platform Skeleton & Authentication'
-gate: PASS
-status_reason: 'Compliance sink now records auth login and consent acknowledgements, and the new Vitest consent/OAuth suite plus backend pytest coverage closes the P0 automation gap.'
-reviewer: 'James (Full Stack Developer)'
-updated: '2025-10-30T21:40:00Z'
-top_issues: []
+gate: FAIL
+status_reason: 'Blocking regression: Supabase consent persistence throws TypeError during JSON encoding (`apps/api/blockbuilders_api/services/supabase.py:57`), so POST /auth/consent 500s and compliance trails never record consent.'
+reviewer: 'Quinn (Test Architect & Quality Advisor)'
+updated: '2025-11-01T18:45:00Z'
+top_issues:
+  - 'apps/api/blockbuilders_api/services/supabase.py#L57 – Consent payload ships raw datetime, HTTPX JSON encoder raises TypeError, consent endpoint fails.'
 waiver:
   active: false
-quality_score: 85
-expires: '2025-11-30T21:40:00Z'
+quality_score: 40
+expires: '2025-12-15T18:45:00Z'
 evidence:
   tests_reviewed: 5
-  risks_identified: 0
+  risks_identified: 1
   trace:
-    ac_covered: [1, 2, 3, 4]
-    ac_gaps: []
+    ac_covered: [1, 3]
+    ac_gaps: [2, 4]
 nfr_validation:
   security:
     status: CONCERNS
-    notes: 'Consent enforcement works, but missing rate limiting and OAuth hardening coverage remain on the backlog.'
+    notes: 'Conceptual consent/OAuth gating still solid, but regression prevents persistence; rate limiting and OAuth hardening still pending.'
   performance:
     status: CONCERNS
     notes: 'Login → dashboard instrumentation is still pending to validate latency targets.'
   reliability:
-    status: PASS
-    notes: 'Audit logging for auth events now persists to compliance exports with pytest guardrails.'
+    status: FAIL
+    notes: 'Consent API 500 blocks onboarding and audit/compliance persistence; regression must be fixed prior to release.'
   maintainability:
     status: PASS
     notes: 'P0 automation covers consent gating/OAuth flows and compliance persistence, reducing regression risk.'
 recommendations:
   immediate:
+    - action: 'Fix Supabase consent payload serialization: emit ISO-8601 (e.g., `model_dump(mode=\"json\", by_alias=True)`) so POST /auth/consent no longer 500s.'
+      refs:
+        - apps/api/blockbuilders_api/services/supabase.py#L57
     - action: 'Monitor the compliance export path in staging over a full day to confirm auth events accumulate without loss.'
       refs:
         - docs/ops/audit-log-sample.csv

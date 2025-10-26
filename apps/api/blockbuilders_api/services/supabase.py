@@ -59,7 +59,7 @@ class SupabaseService:
         metadata_payload: Dict[str, Any] = {
             "app_metadata": {
                 "consents": {
-                    "simulationOnly": consent.model_dump(by_alias=True)
+                    "simulationOnly": consent.model_dump(by_alias=True, mode="json")
                 }
             }
         }
