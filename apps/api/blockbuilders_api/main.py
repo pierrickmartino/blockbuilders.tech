@@ -1,6 +1,7 @@
 """FastAPI application entrypoint."""
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
 from .repositories.compliance import ComplianceRepository
@@ -13,6 +14,15 @@ from .services.notifications import NotificationService
 def create_app() -> FastAPI:
     """Configure FastAPI application with routers and services."""
     app = FastAPI(title="BlockBuilders API", version="0.1.0")
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[origin for origin in settings.cors_allow_origins if origin],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
 
     datadog_client = DatadogLogClient(
         endpoint=str(settings.datadog_log_endpoint) if settings.datadog_log_endpoint else None,

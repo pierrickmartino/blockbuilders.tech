@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     datadog_api_key: str | None = Field(default=None, alias="DATADOG_API_KEY")
     compliance_export_path: Path = Field(default=Path("docs/ops/audit-log-sample.csv"), alias="COMPLIANCE_EXPORT_PATH")
     notification_channel: str | None = Field(default=None, alias="NOTIFICATION_CHANNEL")
+    cors_allow_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"],
+        alias="CORS_ALLOW_ORIGINS",
+    )
 
 
 settings = Settings()  # type: ignore[call-arg]

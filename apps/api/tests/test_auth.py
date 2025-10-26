@@ -14,6 +14,23 @@ AUTH_HEADER = {"Authorization": "Bearer stub-token"}
 
 
 @pytest.mark.asyncio
+async def test_cors_preflight_allows_auth_endpoints(client):
+    response = await client.options(
+        "/api/v1/auth/session",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "Authorization,Content-Type",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    allow_methods = response.headers.get("access-control-allow-methods", "")
+    assert allow_methods == "*" or "GET" in {method.strip().upper() for method in allow_methods.split(",")}
+
+
+@pytest.mark.asyncio
 async def test_session_reflects_consent_state(app, client):
     stub = SupabaseServiceStub(acknowledged=False)
     app.dependency_overrides[SupabaseService] = lambda: stub
