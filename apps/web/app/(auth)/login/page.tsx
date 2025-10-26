@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const consentNotice =
@@ -52,6 +53,7 @@ export default function LoginPage() {
     }
 
     setError(null);
+    setStatusMessage(null);
     startTransition(async () => {
       const credentials = { email, password };
       const result =
@@ -64,8 +66,18 @@ export default function LoginPage() {
         return;
       }
 
+      const session = result.data?.session ?? null;
+
+      if (!session) {
+        setMode("signin");
+        setStatusMessage(
+          "Account created. Check your email to verify your address, then sign in to continue."
+        );
+        return;
+      }
+
       try {
-        const accessToken = result.data?.session?.access_token ?? null;
+        const accessToken = session.access_token ?? null;
         const seed = await completeOnboarding({ acknowledgeConsent: true, accessToken });
         useWorkspaceStore.getState().loadWorkspace(seed);
       } catch (apiError) {
@@ -114,6 +126,11 @@ export default function LoginPage() {
       {consentNotice ? (
         <p role="status" style={{ color: "#facc15" }}>
           {consentNotice}
+        </p>
+      ) : null}
+      {statusMessage ? (
+        <p role="status" style={{ color: "#38bdf8" }}>
+          {statusMessage}
         </p>
       ) : null}
 

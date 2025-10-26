@@ -140,4 +140,32 @@ describe("LoginPage consent gating", () => {
       )
     );
   });
+
+  it("prompts the user to verify their email when Supabase does not create a session on sign-up", async () => {
+    signUpMock.mockResolvedValueOnce({ data: { session: null }, error: null });
+
+    render(<LoginPage />);
+
+    const signUpTab = screen.getByRole("tab", { name: "Sign Up" });
+    fireEvent.click(signUpTab);
+
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "demo@blockbuilders.tech" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sufficientlySecure1!" } });
+
+    const consentCheckbox = screen.getByRole("checkbox", { name: /simulation-only/i });
+    fireEvent.click(consentCheckbox);
+
+    const submitButton = screen
+      .getAllByRole("button", { name: "Create Account" })
+      .find((button) => (button as HTMLButtonElement).type === "submit") as HTMLButtonElement;
+
+    fireEvent.submit(submitButton.closest("form")!);
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Account created. Check your email to verify your address, then sign in to continue."
+      )
+    );
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
+  });
 });
