@@ -31,7 +31,10 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Code Quality**: List linting/static analysis suites, planned refactors, and owners who will keep the codebase healthier after the feature lands.
+- **Testing Discipline**: Map each acceptance scenario to unit, integration, end-to-end, and non-functional tests, and note when they will be written to fail first.
+- **Experience Consistency**: Reference the design system tokens/components in play, accessibility considerations, and the planned loading/empty/error states.
+- **Performance Budget**: Declare target latency, throughput, and resource budgets (<=150 ms API p95, <=2.5 s LCP, <=30 s backtest) plus the instrumentation or dashboards that enforce them.
 
 ## Project Structure
 
