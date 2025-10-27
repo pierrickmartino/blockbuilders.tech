@@ -31,10 +31,10 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- **Code Quality**: List linting/static analysis suites, planned refactors, and owners who will keep the codebase healthier after the feature lands.
-- **Testing Discipline**: Map each acceptance scenario to unit, integration, end-to-end, and non-functional tests, and note when they will be written to fail first.
-- **Experience Consistency**: Reference the design system tokens/components in play, accessibility considerations, and the planned loading/empty/error states.
-- **Performance Budget**: Declare target latency, throughput, and resource budgets (<=150 ms API p95, <=2.5 s LCP, <=30 s backtest) plus the instrumentation or dashboards that enforce them.
+- Principle I — Code Quality Stewardship: List affected modules, lint/type jobs, and any ADRs required to keep package dependencies acyclic.
+- Principle II — Test-First Evidence: Detail the pre-implementation tests you will author (unit, integration, contracts) and how failure will be verified.
+- Principle III — Consistent User Journeys: Reference the UX spec version, design-system components, and accessibility validations for this feature.
+- Principle IV — Performance Guarantees: Declare performance budgets, measurement tooling (e.g., Datadog dashboards, Chrome traces), and load expectations.
 
 ## Project Structure
 

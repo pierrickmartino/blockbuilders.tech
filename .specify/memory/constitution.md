@@ -1,82 +1,86 @@
 <!--
 Sync Impact Report
-Version change: template -> 1.0.0
-Modified principles:
-- (new) -> Production-Grade Code Quality
-- (new) -> Contract-Led Testing Discipline
-- (new) -> Unified Experience Consistency
-- (new) -> Performance Budget Accountability
-Added sections:
+Version: 1.0.0 → 1.1.0
+Modified Principles:
+- PRINCIPLE_1_NAME → Principle I — Code Quality Stewardship
+- PRINCIPLE_2_NAME → Principle II — Test-First Evidence
+- PRINCIPLE_3_NAME → Principle III — Consistent User Journeys
+- PRINCIPLE_4_NAME → Principle IV — Performance Guarantees
+Added Sections:
 - Implementation Guardrails
-- Delivery Workflow & Compliance
-Removed sections:
-- None
-Templates requiring updates:
-- UPDATED .specify/templates/plan-template.md
-- UPDATED .specify/templates/spec-template.md
-- UPDATED .specify/templates/tasks-template.md
-- PENDING .specify/templates/commands/ (directory absent; add guidance when commands are introduced)
-Follow-up TODOs: None
+- Workflow & Compliance
+Removed Sections:
+- Principle V placeholder
+Templates:
+- .specify/templates/plan-template.md ✅ updated
+- .specify/templates/spec-template.md ✅ updated
+- .specify/templates/tasks-template.md ✅ updated
+- README.md ✅ updated
+- .specify/templates/commands/ ⚠ pending (directory absent; add guidance once commands exist)
+Follow-up TODOs:
+- TODO(RATIFICATION_DATE): Provide original adoption date
 -->
 
-# Blockbuilders Constitution
+# Blockbuilders Engineering Constitution
 
 ## Core Principles
 
-### Production-Grade Code Quality
-**Non-Negotiables**
-- All services and packages MUST ship with automated linting, formatting, and static analysis that run in CI with zero warnings tolerated; suppression requires an approved, time-boxed remediation plan documented in the implementation plan.
-- Implementation plans and specs MUST call out refactors or debt paydown necessary to keep modules cohesive; code review MUST block hidden coupling, shared mutable state, or abstractions without owners.
-- Shared libraries MUST expose typed, documented contracts and changelogs; breaking changes demand a migration note and version bump synchronized across dependents.
+### Principle I — Code Quality Stewardship
 
-**Rationale**
-High-quality code keeps the rapidly evolving monorepo maintainable, enabling safe reuse and faster iteration.
+- CI MUST block merges unless linting, formatting, static analysis, and type checks pass for every affected workspace.
+- New or modified modules MUST provide typed public contracts and module-level documentation (README or docstring) before they can be consumed by another package.
+- Architectural boundaries between `apps/*` and `packages/*` MUST remain acyclic; introduce a new dependency only with an ADR recorded in `docs/architecture/decisions/`.
+- Code owners MUST reject pull requests that exceed cyclomatic complexity 10 or 30 executable lines per function unless the PR links a mitigation plan in the spec/plan.
 
-### Contract-Led Testing Discipline
-**Non-Negotiables**
-- Every feature spec MUST enumerate unit, integration, end-to-end, and non-functional tests that prove each acceptance scenario before implementation starts; plans must schedule when those tests fail first (red) and pass (green).
-- CI pipelines MUST block merges until all mandated tests run green, including contract tests for APIs, worker smoke suites, and frontend journeys; touched modules MUST sustain >=85% statement coverage with any gaps justified in the QA record.
-- Nightly jobs MUST execute load/backtest harnesses and alert on regressions; failures pause new releases until resolved with documented root cause analysis.
+**Rationale:** Stable, well-documented modules prevent cascading regressions and keep the monorepo maintainable as more strategy tooling ships.
 
-**Rationale**
-Testing first protects product integrity, uncovers regressions early, and keeps confidence high for continuous delivery.
+### Principle II — Test-First Evidence
 
-### Unified Experience Consistency
-**Non-Negotiables**
-- User-facing work MUST map each component to the canonical design system tokens and patterns in `docs/front-end-spec.md`; deviations require UX approval captured in the spec's decision log.
-- All flows MUST satisfy WCAG 2.1 AA, declare responsive breakpoints, and define consistent loading, empty, and error treatments before implementation.
-- Copy, onboarding, and in-app education updates MUST route through UX review and localization checks that land in the relevant quickstart or documentation updates.
+- Every feature branch MUST add or update automated tests that fail before implementation and pass afterward; merging without test evidence is prohibited.
+- Services MUST maintain ≥85% statement coverage on all files touched by the change; lower coverage requires an explicit waiver logged in `specs/.../plan.md`.
+- Critical trading and simulation paths MUST include integration tests (API + worker + data stores) that run in CI pre-merge and nightly.
+- The test suite MUST be deterministic; flaky tests block merges until quarantined with an issue link and remediation plan.
 
-**Rationale**
-A cohesive, accessible experience builds user trust and accelerates onboarding for non-technical traders.
+**Rationale:** Evidence-driven development catches regressions early, protecting customer trust in simulations and live-trading outcomes.
 
-### Performance Budget Accountability
-**Non-Negotiables**
-- Backend endpoints MUST sustain <=150 ms p95 latency and queue-backed workloads MUST meet SLAs defined in `docs/architecture/security-and-performance.md`; instrumentation MUST be in place before feature toggles lift.
-- Frontend routes MUST keep Largest Contentful Paint <=2.5 s on mid-tier hardware, limit critical JavaScript to <=100 KB, and log core web vitals to monitoring dashboards.
-- Strategy backtests and simulations MUST complete standard workloads in <=30 s (per PRD FR3) with performance smoke tests executed on every release candidate.
+### Principle III — Consistent User Journeys
 
-**Rationale**
-Measured performance ensures simulations feel responsive, protects infrastructure costs, and preserves competitive differentiation.
+- Front-end work MUST compose components and tokens from `packages/design-system`; introducing bespoke UI requires documented approval in the spec.
+- All UI additions MUST pass automated accessibility checks (eslint-plugin-jsx-a11y + Lighthouse) meeting WCAG 2.1 AA for semantic structure, contrast, and keyboard flows.
+- Feature specs MUST pin the UX reference (e.g., `docs/front-end-spec.md` version) and any deviation MUST include updated mockups reviewed by UX before development starts.
+- Responsive breakpoints (mobile ≤640px, tablet ≤1024px, desktop >1024px) MUST be validated before release; failing breakpoints require a follow-up task before launch.
+
+**Rationale:** Consistent interactions and accessible visuals make the no-code lab feel trustworthy for new builders and power users alike.
+
+### Principle IV — Performance Guarantees
+
+- The Next.js app MUST sustain Largest Contentful Paint ≤2.5s at p75 on mid-tier hardware (Chrome: Moto G Power profile) before a feature can graduate from QA.
+- FastAPI endpoints serving trade or simulation data MUST meet ≤200ms p95 latency under 500 req/min synthetic load in the staging stack.
+- Celery/worker jobs that power backtests MUST finish a 30-day hourly dataset within 5 minutes; longer runtimes require sliced execution plans documented in the spec.
+- Every feature plan MUST specify the metric sources (Datadog dashboards, Chrome traces, pytest perf markers) that will demonstrate budget compliance post-release.
+
+**Rationale:** Performance determines whether strategy iteration feels immediate or unusable; guarding budgets keeps the lab viable for realtime decision-making.
 
 ## Implementation Guardrails
 
-- Specifications, plans, and task breakdowns MUST explicitly document how each principle is satisfied, including the code quality plan, enumerated tests with owners, UX alignment references, and the performance budget with instrumentation strategy.
-- Feature work MUST include monitoring dashboards, observability hooks, and post-launch validation tasks that confirm the stated budgets and UX guardrails remain intact.
-- Any exception to the principles requires a written risk acceptance signed by Engineering, Product, and QA leadership, including a concrete remediation deadline.
+- Instrumentation: All services MUST emit structured logs with correlation IDs, latency, and error codes; metrics and traces MUST flow to Datadog before feature launch.
+- Secrets: Environment configuration MUST come from `.env` templates checked into the repo; hard-coded secrets or ad-hoc env vars are forbidden.
+- Dependencies: Third-party libraries MUST undergo security vetting (license + CVE scan) recorded in the plan doc before inclusion.
+- Documentation: Every approved ADR MUST note the principle(s) it satisfies and link back to the relevant spec/plan section.
 
-## Delivery Workflow & Compliance
+## Workflow & Compliance
 
-1. **Planning Gate** - `/speckit.plan` outputs MUST populate the Constitution Check with evidence for all four principles before Phase 0 research commences.
-2. **Specification Gate** - `spec.md` MUST carry traceable acceptance tests, UX artefact links, and performance budgets so implementation tasks inherit explicit requirements.
-3. **Execution Gate** - `/speckit.tasks` MUST tie every task to its corresponding tests, UX acceptance, and performance verification; no development task closes without linked test execution evidence.
-4. **Release Gate** - CI, QA, and UX sign-offs confirm principle compliance; unresolved variances escalate to the governance review for decision or rollback.
+- Feature plans MUST document how each principle is satisfied; missing detail blocks Phase 0 research sign-off.
+- Specs MUST enumerate test evidence (Principle II), UX references (Principle III), and performance budgets (Principle IV) before status can move past Draft.
+- Pull requests MUST reference the governing principle for each non-trivial change in the PR description checklist.
+- Quarterly, the engineering leads and PM review adherence metrics (lint pass rate, coverage deltas, performance budgets) and publish an audit note in `/docs/ops/`.
 
 ## Governance
 
-- **Authority** - This constitution supersedes conflicting documentation; engineering decisions that diverge from it are invalid until amended.
-- **Amendments** - Changes require a PR describing rationale, impact analysis, and updates to affected templates or guidance. Approval from Engineering Lead, Product Lead, and QA Lead is mandatory before merge.
-- **Versioning Policy** - Semantic versioning governs updates: MAJOR for principle redefinitions or removals, MINOR for new principles or governance steps, PATCH for clarifications. Version increments occur within the amendment PR.
-- **Compliance Review** - Quarterly audits sample features to verify principle adherence, retrospectives document variances, and corrective actions feed the backlog with tracked owners and due dates.
+- This constitution supersedes contradictory guidance in other docs; conflicts MUST resolve in favor of the latest amended constitution.
+- Amendments require (1) linked discussion issue, (2) approval from Engineering Lead, Product Lead, and UX, and (3) updated Sync Impact Report plus version bump per SemVer.
+- Ratification changes (MAJOR versions) require migration guidance for existing specs/plans; MINOR captures new principles; PATCH covers textual clarifications only.
+- Compliance audits run quarterly; discoverable violations MUST have corrective tasks tracked in Linear within five business days.
+- Technical decisions (ADR, plan, spec, PR) MUST cite the relevant principle(s) and record any granted waivers with an expiration date.
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-27 | **Last Amended**: 2025-10-27
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): Provide original adoption date | **Last Amended**: 2025-10-27
