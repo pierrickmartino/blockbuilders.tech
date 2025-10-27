@@ -1,0 +1,8 @@
+{
+  "name": "@blockbuilders/workers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "poetry run celery -A blockbuilders_workers.celery_app worker --loglevel=info --concurrency=1"
+  }
+}

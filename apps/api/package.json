@@ -1,0 +1,8 @@
+{
+  "name": "@blockbuilders/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "poetry run uvicorn blockbuilders_api.main:app --reload --host 127.0.0.1 --port 8000"
+  }
+}

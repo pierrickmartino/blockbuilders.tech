@@ -28,13 +28,14 @@ pre-commit install
 
 ```bash
 docker compose up redis timescale -d
-pnpm turbo run dev --parallel     # frontend + API + workers
+pnpm turbo run dev --parallel     # launches web, FastAPI, and Celery worker together
 ```
 
 Useful one-offs:
 
 - `pnpm --filter web dev` — frontend only
-- `make api-dev` — FastAPI with reload (wraps `uvicorn`)
+- `pnpm --filter @blockbuilders/api dev` — FastAPI with reload via poetry/uvicorn
+- `pnpm --filter @blockbuilders/workers dev` — Celery worker using poetry
 - `pnpm turbo run test` / `poetry run pytest` — JS/TS and Python tests
 - `python scripts/mock_datadog_agent.py --port 8282` — local Datadog shim that echoes audit log payloads for instrumentation checks
 
