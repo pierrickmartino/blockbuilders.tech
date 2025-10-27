@@ -1,0 +1,4 @@
+event_id,event_type,actor_id,occurred_at,strategy_id,version_id,metadata
+evt_1f5de4d751274bbb977f5c16570959b4,CONSENT_ACKNOWLEDGED,80d04a82-5945-426f-be64-12bb3965084d,2025-10-27T05:12:06.886409+00:00,,,{}
+evt_6ed74bf9f99e4c1eae61fea0f0f72047,AUTH_LOGIN,80d04a82-5945-426f-be64-12bb3965084d,2025-10-27T05:12:06.908260+00:00,,,{}
+evt_1999c4ccbd794057bc11883e10fc6b4e,WORKSPACE_CREATED,80d04a82-5945-426f-be64-12bb3965084d,2025-10-27T05:12:06.932081+00:00,demo-80d04a82-5945-426f-be64-12bb3965084d,demo-v1,"{""strategyId"": ""demo-80d04a82-5945-426f-be64-12bb3965084d"", ""strategyName"": ""Quickstart Momentum"", ""versionId"": ""demo-v1""}"

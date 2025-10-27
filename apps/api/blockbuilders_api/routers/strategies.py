@@ -19,7 +19,7 @@ from ..services.workspace import WorkspaceService, get_workspace_service
 router = APIRouter(tags=["strategies"])
 
 
-@router.post("/strategies", response_model=StrategySeed)
+@router.post("/strategies", response_model=StrategySeed, response_model_exclude_none=True)
 async def create_strategy(
     user: AuthenticatedUser = Depends(require_consent),
     workspace: WorkspaceService = Depends(get_workspace_service),
@@ -41,7 +41,11 @@ async def create_strategy(
     return seed
 
 
-@router.post("/strategies/{strategy_id}/versions", response_model=StrategySeed)
+@router.post(
+    "/strategies/{strategy_id}/versions",
+    response_model=StrategySeed,
+    response_model_exclude_none=True,
+)
 async def create_strategy_version(
     strategy_id: str,
     user: AuthenticatedUser = Depends(require_consent),
