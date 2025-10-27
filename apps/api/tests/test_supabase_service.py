@@ -69,12 +69,21 @@ def _make_jwt(payload: Dict[str, Any]) -> str:
 
 
 @pytest.fixture(autouse=True)
-def _clear_supabase_cache():
+def _supabase_test_environment(tmp_path, monkeypatch):
     original_timeout = settings.supabase_http_timeout_seconds
+    original_cache_path = settings.supabase_metadata_cache_path
+    cache_path = tmp_path / "metadata-cache.json"
+
+    monkeypatch.setattr(settings, "supabase_metadata_cache_path", cache_path, raising=False)
     SupabaseService._metadata_cache.clear()
+    SupabaseService._cache_loaded = False
+
     yield
+
     SupabaseService._metadata_cache.clear()
+    SupabaseService._cache_loaded = False
     settings.supabase_http_timeout_seconds = original_timeout
+    monkeypatch.setattr(settings, "supabase_metadata_cache_path", original_cache_path, raising=False)
 
 
 @pytest.mark.asyncio
@@ -148,6 +157,38 @@ async def test_persist_consent_fallback_updates_cache(monkeypatch):
     )
 
     user = await service.fetch_user(token)
+    assert user.metadata.consents.simulation_only.acknowledged is True
+
+
+@pytest.mark.asyncio
+async def test_persist_consent_survives_process_restart(monkeypatch):
+    token = _make_jwt(
+        {
+            "sub": "user-disk",
+            "email": "disk@blockbuilders.tech",
+            "app_metadata": _empty_metadata(),
+        }
+    )
+
+    monkeypatch.setattr(
+        "blockbuilders_api.services.supabase.httpx.AsyncClient",
+        lambda *a, **kw: _FailingClient("PUT"),
+    )
+
+    service = SupabaseService()
+    await service.persist_simulation_consent(user_id="user-disk")
+
+    SupabaseService._metadata_cache.clear()
+    SupabaseService._cache_loaded = False
+
+    monkeypatch.setattr(
+        "blockbuilders_api.services.supabase.httpx.AsyncClient",
+        lambda *a, **kw: _FailingClient("GET"),
+    )
+
+    service = SupabaseService()
+    user = await service.fetch_user(token)
+
     assert user.metadata.consents.simulation_only.acknowledged is True
 
 

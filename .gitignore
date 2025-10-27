@@ -24,3 +24,7 @@ coverage/
 .vscode/
 .idea/
 .DS_Store
+
+# Generated cache
+apps/api/.ai/
+.turbo/

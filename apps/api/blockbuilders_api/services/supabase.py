@@ -6,6 +6,8 @@ import base64
 import json
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
+from threading import Lock
 from typing import Any, Dict, Optional, Tuple
 
 import httpx
@@ -47,14 +49,61 @@ class SupabaseService:
     """Wrapper around Supabase Auth REST endpoints with local fallbacks for offline development."""
 
     _metadata_cache: Dict[str, AppMetadata] = {}
+    _cache_loaded: bool = False
+    _cache_lock: Lock = Lock()
+
+    @classmethod
+    def _cache_path(cls) -> Path | None:
+        return settings.supabase_metadata_cache_path
+
+    @classmethod
+    def _ensure_cache_loaded(cls) -> None:
+        with cls._cache_lock:
+            if cls._cache_loaded:
+                return
+
+            cache_path = cls._cache_path()
+            if cache_path and cache_path.exists():
+                try:
+                    payload = json.loads(cache_path.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:  # pragma: no cover - defensive logging
+                    LOGGER.warning("Failed to load Supabase metadata cache from %s: %s", cache_path, exc)
+                else:
+                    for user_id, metadata_payload in payload.items():
+                        try:
+                            cls._metadata_cache[user_id] = AppMetadata.model_validate(metadata_payload)
+                        except ValidationError:
+                            LOGGER.warning("Ignoring invalid cached Supabase metadata for %s", user_id)
+            cls._cache_loaded = True
+
+    @classmethod
+    def _persist_cache_locked(cls) -> None:
+        cache_path = cls._cache_path()
+        if not cache_path:
+            return
+
+        try:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            serializable = {
+                user_id: metadata.model_dump(by_alias=True, mode="json")
+                for user_id, metadata in cls._metadata_cache.items()
+            }
+            cache_path.write_text(json.dumps(serializable, indent=2), encoding="utf-8")
+        except OSError as exc:  # pragma: no cover - defensive logging
+            LOGGER.warning("Failed to persist Supabase metadata cache to %s: %s", cache_path, exc)
 
     @classmethod
     def _cache_metadata(cls, user_id: str, metadata: AppMetadata) -> None:
-        cls._metadata_cache[user_id] = metadata
+        cls._ensure_cache_loaded()
+        with cls._cache_lock:
+            cls._metadata_cache[user_id] = metadata
+            cls._persist_cache_locked()
 
     @classmethod
     def _get_cached_metadata(cls, user_id: str) -> Optional[AppMetadata]:
-        return cls._metadata_cache.get(user_id)
+        cls._ensure_cache_loaded()
+        with cls._cache_lock:
+            return cls._metadata_cache.get(user_id)
 
     async def fetch_user(self, access_token: str) -> AuthenticatedUser:
         fallback_user = self._user_from_token_with_cache(access_token)
