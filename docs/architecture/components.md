@@ -10,7 +10,7 @@
 
 **Dependencies:** Supabase Auth service, Strategy API, Notification API
 
-**Technology Stack:** Next.js 15, React 18, Tailwind, React Flow, React Query, Zustand
+**Technology Stack:** Next.js 15, React 18, Tailwind, Radix UI, Tremor UI, React Flow, React Query, Zustand
 
 ## FastAPI Core Service
 **Responsibility:** Exposes CRUD, enforces quotas, orchestrates jobs, handles compliance/billing webhooks.

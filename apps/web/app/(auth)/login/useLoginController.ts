@@ -77,8 +77,8 @@ export function useLoginController(): LoginController {
   const actionLabel = useMemo(() => (mode === "signin" ? "Sign In" : "Create Account"), [mode]);
 
   const oauthProviders: OAuthProviderOption[] = [
-    { id: "google", label: "Continue with Google" },
-    { id: "github", label: "Continue with GitHub" }
+    { id: "github", label: "Login with GitHub" },
+    { id: "google", label: "Login with Google" }
   ];
 
   const ensureConsent = () => {

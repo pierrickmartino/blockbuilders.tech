@@ -5,6 +5,7 @@
  */
 
 import { ChangeEvent, ReactElement } from "react";
+import Link from "next/link";
 
 import { AuthModeToggle, OAuthProviderButtons, StatusBanner } from "./components";
 import { useLoginController } from "./useLoginController";
@@ -46,74 +47,100 @@ export default function LoginPage(): ReactElement {
     setConsent(event.target.checked);
   };
 
+  const heading = mode === "signin" ? "Sign in to your account" : "Create your account";
+
   return (
-    <main>
-      <h1>Welcome back</h1>
-      <p>Authenticate with Supabase and launch into your guided BlockBuilders workspace.</p>
+    <div className="auth-shell">
+      <main className="auth-card">
+        <header className="auth-logo" aria-label="BlockBuilders">
+          <div className="auth-logo-mark" aria-hidden="true">
+            BB
+          </div>
+          <div>
+            <span>BlockBuilders</span>
+          </div>
+        </header>
 
-      {consentNotice ? <StatusBanner message={consentNotice} tone="warning" role="status" /> : null}
-      {statusMessage ? <StatusBanner message={statusMessage} tone="info" role="status" /> : null}
+        <section>
+          <h1 className="auth-title">{heading}</h1>
+          <AuthModeToggle mode={mode} pending={pending} onSelect={setMode} />
+        </section>
 
-      <AuthModeToggle mode={mode} pending={pending} onSelect={setMode} />
+        {consentNotice ? <StatusBanner message={consentNotice} tone="warning" role="status" /> : null}
+        {statusMessage ? <StatusBanner message={statusMessage} tone="info" role="status" /> : null}
 
-      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", maxWidth: "400px" }}>
-        <label style={{ display: "grid", gap: "0.25rem" }}>
-          <span>Email</span>
-          <input
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={handleEmailChange}
-            disabled={pending}
-            style={{ padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid rgba(255,255,255,0.2)" }}
-          />
-        </label>
+        <OAuthProviderButtons
+          options={oauthProviders}
+          disabled={!consent}
+          pending={pending}
+          onSignIn={handleOAuthSignIn}
+        />
 
-        <label style={{ display: "grid", gap: "0.25rem" }}>
-          <span>Password</span>
-          <input
-            type="password"
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            minLength={8}
-            required
-            value={password}
-            onChange={handlePasswordChange}
-            disabled={pending}
-            style={{ padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid rgba(255,255,255,0.2)" }}
-          />
-        </label>
+        <div className="auth-separator">
+          <span>or</span>
+        </div>
 
-        <label style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <input
-            type="checkbox"
-            checked={consent}
-            onChange={handleConsentChange}
-            disabled={pending}
-            aria-required
-          />
-          <span>
-            I acknowledge that the BlockBuilders platform operates in a <strong>simulation-only</strong> environment. See our
-            <a href={TERMS_URL} target="_blank" rel="noreferrer" style={{ color: "#38bdf8", marginLeft: "0.25rem" }}>
-              policy
-            </a>
-            .
-          </span>
-        </label>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <label className="auth-label" htmlFor="email">
+            Email
+            <input
+              id="email"
+              className="auth-input"
+              type="email"
+              placeholder="john@company.com"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={handleEmailChange}
+              disabled={pending}
+            />
+          </label>
 
-        <button type="submit" className="button primary" disabled={disabled}>
-          {pending ? "Processing..." : actionLabel}
-        </button>
+          <label className="auth-label" htmlFor="password">
+            Password
+            <input
+              id="password"
+              className="auth-input"
+              type="password"
+              placeholder="Password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              minLength={8}
+              required
+              value={password}
+              onChange={handlePasswordChange}
+              disabled={pending}
+            />
+          </label>
 
-        {error ? <StatusBanner message={error} tone="error" role="alert" /> : null}
-      </form>
+          <label className="auth-consent">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={handleConsentChange}
+              disabled={pending}
+              aria-required
+            />
+            <span>
+              I acknowledge that the BlockBuilders platform operates in a <strong>simulation-only</strong> environment. See our{" "}
+              <a className="auth-link" href={TERMS_URL} target="_blank" rel="noreferrer">
+                policy
+              </a>
+              .
+            </span>
+          </label>
 
-      <OAuthProviderButtons
-        options={oauthProviders}
-        disabled={!consent}
-        pending={pending}
-        onSignIn={handleOAuthSignIn}
-      />
-    </main>
+          <button type="submit" className="auth-submit" disabled={disabled}>
+            {pending ? "Processing..." : actionLabel}
+          </button>
+
+          {error ? <StatusBanner message={error} tone="error" role="alert" /> : null}
+        </form>
+
+        <div className="auth-footer">
+          <span>Forgot your password?</span>
+          <Link href="https://blockbuilders.tech/reset-password">Reset password</Link>
+        </div>
+      </main>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
 event_id,event_type,actor_id,occurred_at,strategy_id,version_id,metadata
-evt_249ebb1eec544ee29f1c1734f908e45d,CONSENT_ACKNOWLEDGED,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T20:39:38.666392+00:00,,,{}
-evt_a94915e438c9434e9a8d2ae4245908ef,AUTH_LOGIN,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T20:39:38.912023+00:00,,,{}
-evt_a082145cf6514185a42a0e7a69ccee72,WORKSPACE_CREATED,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T20:39:39.364497+00:00,demo-eb48d570-d0b8-4c2b-a21e-daa8451a84a8,demo-v1,"{""strategyId"": ""demo-eb48d570-d0b8-4c2b-a21e-daa8451a84a8"", ""strategyName"": ""Quickstart Momentum"", ""versionId"": ""demo-v1""}"
+evt_ec7b2c7b4ed44c04843a0affd2f0707b,CONSENT_ACKNOWLEDGED,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T21:05:07.734864+00:00,,,{}
+evt_4c4a059a09dd4a6097ef38af56e21460,AUTH_LOGIN,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T21:05:07.947308+00:00,,,{}
+evt_7022686240c1413a87a8621b24d40610,WORKSPACE_CREATED,eb48d570-d0b8-4c2b-a21e-daa8451a84a8,2025-10-28T21:05:08.153462+00:00,demo-eb48d570-d0b8-4c2b-a21e-daa8451a84a8,demo-v1,"{""strategyId"": ""demo-eb48d570-d0b8-4c2b-a21e-daa8451a84a8"", ""strategyName"": ""Quickstart Momentum"", ""versionId"": ""demo-v1""}"

@@ -82,7 +82,7 @@ describe("LoginPage consent gating", () => {
     const submitButton = screen
       .getAllByRole("button", { name: "Sign In" })
       .find((button) => (button as HTMLButtonElement).type === "submit") as HTMLButtonElement;
-    const googleButton = screen.getByRole("button", { name: "Continue with Google" });
+    const googleButton = screen.getByRole("button", { name: "Login with Google" });
 
     expect(submitButton).toBeDisabled();
     expect(googleButton).toBeDisabled();
@@ -119,7 +119,7 @@ describe("LoginPage consent gating", () => {
     const consentCheckbox = screen.getByRole("checkbox", { name: /simulation-only/i });
     fireEvent.click(consentCheckbox);
 
-    const googleButton = screen.getByRole("button", { name: "Continue with Google" });
+    const googleButton = screen.getByRole("button", { name: "Login with Google" });
     fireEvent.click(googleButton);
 
     await waitFor(() => expect(signInWithOAuthMock).toHaveBeenCalled());
@@ -134,8 +134,8 @@ describe("LoginPage consent gating", () => {
   it("passes the active session access token into onboarding flow after sign-up", async () => {
     render(<LoginPage />);
 
-    const signUpTab = screen.getByRole("tab", { name: "Sign Up" });
-    fireEvent.click(signUpTab);
+    const signUpToggle = screen.getByRole("button", { name: "Sign up" });
+    fireEvent.click(signUpToggle);
 
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "demo@blockbuilders.tech" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sufficientlySecure1!" } });
@@ -161,8 +161,8 @@ describe("LoginPage consent gating", () => {
 
     render(<LoginPage />);
 
-    const signUpTab = screen.getByRole("tab", { name: "Sign Up" });
-    fireEvent.click(signUpTab);
+    const signUpToggle = screen.getByRole("button", { name: "Sign up" });
+    fireEvent.click(signUpToggle);
 
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "demo@blockbuilders.tech" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sufficientlySecure1!" } });
