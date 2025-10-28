@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Edge middleware enforcing authentication and consent gating.
+ */
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
@@ -6,10 +10,23 @@ import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 const PROTECTED_PATH_PREFIXES = ["/dashboard"];
 
+/**
+ * Determines whether the current path requires an authenticated session.
+ *
+ * @param {string} pathname - Requested URL pathname.
+ * @returns {boolean} True when the route is protected.
+ */
 function requiresAuth(pathname: string): boolean {
   return PROTECTED_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+/**
+ * Builds a redirect URL preserving the original destination and reason.
+ *
+ * @param {NextRequest} request - Incoming request context.
+ * @param {"login" | "consent"} reason - Redirect reason for messaging.
+ * @returns {URL} Next.js redirect destination.
+ */
 function buildRedirectUrl(request: NextRequest, reason: "login" | "consent"): URL {
   const redirect = new URL("/login", request.url);
   if (reason === "consent") {
@@ -21,7 +38,13 @@ function buildRedirectUrl(request: NextRequest, reason: "login" | "consent"): UR
   return redirect;
 }
 
-export async function middleware(request: NextRequest) {
+/**
+ * Enforces authentication and consent acknowledgement prior to accessing protected routes.
+ *
+ * @param {NextRequest} request - Next.js middleware request.
+ * @returns {Promise<NextResponse>} Response or redirect enforcing policy.
+ */
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const response = NextResponse.next({ request: { headers: request.headers } });
   const supabase = createMiddlewareClient({
     req: request,
@@ -51,6 +74,9 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+/**
+ * Middleware matcher configuration enforcing gating on dashboard routes.
+ */
 export const config = {
   matcher: ["/dashboard", "/dashboard/:path*"]
 };

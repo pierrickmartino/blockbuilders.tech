@@ -1,6 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState, useTransition } from "react";
+/**
+ * @fileoverview Simulation consent-gated authentication page for Supabase auth flows.
+ */
+
+import { FormEvent, ReactElement, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
 
@@ -14,7 +18,12 @@ const AUTH_REDIRECT_BASE_URL = process.env.NEXT_PUBLIC_AUTH_REDIRECT_BASE_URL;
 
 type AuthMode = "signin" | "signup";
 
-export default function LoginPage() {
+/**
+ * Presents email/password and OAuth authentication with simulation-only consent enforcement.
+ *
+ * @returns {ReactElement} Interactive authentication workflow.
+ */
+export default function LoginPage(): ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<AuthMode>("signin");

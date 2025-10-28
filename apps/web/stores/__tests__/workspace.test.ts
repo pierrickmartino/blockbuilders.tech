@@ -1,8 +1,8 @@
 import { describe, beforeEach, it, expect } from "vitest";
 
-import { StrategySeed } from "@blockbuilders/shared";
+import { type StrategySeed } from "@blockbuilders/shared";
 
-import { useWorkspaceStore } from "./workspace";
+import { useWorkspaceStore } from "../workspace";
 
 const demoSeed: StrategySeed = {
   strategyId: "demo-user",

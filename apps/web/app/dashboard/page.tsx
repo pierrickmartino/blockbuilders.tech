@@ -1,7 +1,11 @@
 "use client";
 
+/**
+ * @fileoverview Demo dashboard showcasing onboarding callouts and seeded workspace state.
+ */
+
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { ReactElement, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import { ConsentRequiredError, completeOnboarding } from "@/lib/auth/onboarding";
@@ -11,7 +15,12 @@ import { getOnboardingCallout, onboardingCallouts } from "@blockbuilders/shared"
 
 const DASHBOARD_PATH = "/dashboard";
 
-export default function DashboardPage() {
+/**
+ * Renders the authenticated dashboard, bootstrapping demo workspace state when necessary.
+ *
+ * @returns {ReactElement} Dashboard view with onboarding guidance.
+ */
+export default function DashboardPage(): ReactElement {
   const seed = useWorkspaceStore((state) => state.seed);
   const nodes = useWorkspaceStore((state) => state.nodes);
   const loadWorkspace = useWorkspaceStore((state) => state.loadWorkspace);

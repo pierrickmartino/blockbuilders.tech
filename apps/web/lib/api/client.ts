@@ -1,5 +1,12 @@
+/**
+ * @fileoverview Typed REST client for BlockBuilders authentication APIs.
+ */
+
 import { SupabaseAuthProfile, appMetadataSchema, strategySeedSchema, type StrategySeed } from "@blockbuilders/shared";
 
+/**
+ * Auth session payload validated against shared Supabase schemas.
+ */
 export type AuthSession = SupabaseAuthProfile;
 
 type ApiAuthSessionResponse = {
@@ -8,6 +15,13 @@ type ApiAuthSessionResponse = {
   appMetadata: unknown;
 };
 
+/**
+ * Retrieves the authenticated Supabase session metadata from the API.
+ *
+ * @param {string} accessToken - Supabase access token used for authorization.
+ * @returns {Promise<AuthSession>} Parsed session payload matching shared contracts.
+ * @throws {Error} When the fetch fails or the payload cannot be validated.
+ */
 export async function fetchAuthSession(accessToken: string): Promise<AuthSession> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/session`, {
     credentials: "include",
@@ -35,6 +49,13 @@ export async function fetchAuthSession(accessToken: string): Promise<AuthSession
   } satisfies AuthSession;
 }
 
+/**
+ * Persists the simulation-only consent acknowledgement for the active user.
+ *
+ * @param {string} accessToken - Supabase access token used for authorization.
+ * @returns {Promise<void>} Resolves when the API confirms consent persistence.
+ * @throws {Error} When the API call fails.
+ */
 export async function acknowledgeSimulationConsent(accessToken: string): Promise<void> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/consent`, {
     method: "POST",
@@ -50,6 +71,13 @@ export async function acknowledgeSimulationConsent(accessToken: string): Promise
   }
 }
 
+/**
+ * Seeds a demo strategy and initial version for the authenticated user.
+ *
+ * @param {string} accessToken - Supabase access token used for authorization.
+ * @returns {Promise<StrategySeed>} Strategy scaffold containing blocks and edges.
+ * @throws {Error} When strategy provisioning fails or responses are invalid.
+ */
 export async function bootstrapDemoWorkspace(accessToken: string): Promise<StrategySeed> {
   const strategyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/strategies`, {
     method: "POST",

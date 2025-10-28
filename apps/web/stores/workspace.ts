@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Zustand store containing the demo strategy workspace state.
+ */
+
 import { create } from "zustand";
-import { StrategyBlock, StrategyEdge, StrategySeed } from "@blockbuilders/shared";
+import { type StrategyBlock, type StrategyEdge, type StrategySeed } from "@blockbuilders/shared";
 
 interface WorkspaceState {
   seed: StrategySeed | null;
@@ -11,6 +15,9 @@ interface WorkspaceState {
   reset: () => void;
 }
 
+/**
+ * Provides access to the workspace state for the authenticated demo environment.
+ */
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   seed: null,
   nodes: [],
