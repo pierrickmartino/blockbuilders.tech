@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 import httpx
@@ -31,11 +32,17 @@ class DatadogLogClient:
     endpoint: str | None
     api_key: str | None = None
     transport: httpx.AsyncBaseTransport | None = None
+    _retry_after: datetime | None = field(default=None, init=False, repr=False)
+    _warned: bool = field(default=False, init=False, repr=False)
 
     async def send_event(self, event: AuditLogEvent) -> None:
         """Send the audit log event to Datadog if an endpoint is configured."""
 
         if not self.endpoint:
+            return
+
+        now = datetime.now(timezone.utc)
+        if self._retry_after and now < self._retry_after:
             return
 
         payload = self._build_payload(event)
@@ -47,7 +54,22 @@ class DatadogLogClient:
             async with httpx.AsyncClient(timeout=5.0, transport=self.transport) as client:
                 await client.post(self.endpoint, headers=headers, json=payload)
         except httpx.HTTPError as exc:
-            LOGGER.warning("Failed to forward audit event to Datadog: %s", exc)
+            retry_delay = timedelta(seconds=60)
+            self._retry_after = now + retry_delay
+            if not self._warned:
+                LOGGER.warning(
+                    "Failed to forward audit event to Datadog: %s. "
+                    "Datadog forwarding will retry in %s seconds. "
+                    "Run `python scripts/mock_datadog_agent.py --port 8282` to capture events locally.",
+                    exc,
+                    int(retry_delay.total_seconds()),
+                )
+                self._warned = True
+            else:
+                LOGGER.debug("Datadog forwarding still unavailable: %s", exc)
+        else:
+            self._retry_after = None
+            self._warned = False
 
     def _build_payload(self, event: AuditLogEvent) -> Dict[str, Any]:
         metadata = event.metadata or {}
