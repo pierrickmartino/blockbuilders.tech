@@ -67,7 +67,6 @@ Check `docs/architecture.md#unified-project-structure` for the authoritative lay
 - [Fullstack Architecture](docs/architecture.md) — monorepo structure, service contracts, deployment plan, and operational runbooks (v0.4).
 - [UI/UX Specification](docs/front-end-spec.md) — personas, flows, component inventory, and visual guardrails (v0.3).
 - [Project Brief](docs/brief.md) — market context, research timeline, and risk tracker for PM/leadership syncs.
-- [Engineering Constitution](.specify/memory/constitution.md) - non-negotiable principles for code quality, testing, UX consistency, and performance governance (v1.2.0).
 
 ## Collaboration Rituals
 
