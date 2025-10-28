@@ -105,55 +105,68 @@ class SupabaseService:
         with cls._cache_lock:
             return cls._metadata_cache.get(user_id)
 
-    async def fetch_user(self, access_token: str) -> AuthenticatedUser:
-        fallback_user = self._user_from_token_with_cache(access_token)
-        if settings.supabase_http_timeout_seconds <= 0 and fallback_user is not None:
-            return fallback_user
+    @staticmethod
+    def _should_bypass_remote_lookup() -> bool:
+        """Return True when local JWT decoding is sufficient."""
 
-        headers = {
+        return settings.supabase_http_timeout_seconds <= 0
+
+    @staticmethod
+    def _user_headers(access_token: str) -> Dict[str, str]:
+        """Headers required for Supabase authenticated user lookups."""
+
+        return {
             "Authorization": f"Bearer {access_token}",
             "apikey": settings.supabase_service_role_key,
         }
 
+    @staticmethod
+    def _admin_headers() -> Dict[str, str]:
+        """Headers required for Supabase admin metadata updates."""
+
+        return {
+            "Authorization": f"Bearer {settings.supabase_service_role_key}",
+            "apikey": settings.supabase_service_role_key,
+        }
+
+    @staticmethod
+    def _build_timeout() -> httpx.Timeout:
+        """Construct a timeout object honoring repository configuration."""
+
         try:
-            timeout = httpx.Timeout(
+            return httpx.Timeout(
                 settings.supabase_http_timeout_seconds,
                 connect=settings.supabase_http_timeout_seconds,
                 read=settings.supabase_http_timeout_seconds,
                 write=settings.supabase_http_timeout_seconds,
             )
         except ValueError:
-            timeout = httpx.Timeout(1.0)
+            return httpx.Timeout(1.0)
 
-        try:
-            async with httpx.AsyncClient(base_url=str(settings.supabase_url), timeout=timeout) as client:
-                response = await client.get(USER_ENDPOINT, headers=headers)
-        except httpx.HTTPError as exc:
-            LOGGER.warning("Supabase fetch_user failed, falling back to JWT payload: %s", exc)
-            cached_user = fallback_user or self._user_from_token_with_cache(access_token)
-            if cached_user is None:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Supabase user service unavailable",
-                ) from exc
-            return cached_user
+    def _resolve_fallback_user(
+        self,
+        fallback_user: Optional[AuthenticatedUser],
+        access_token: str,
+        exc: Exception,
+    ) -> AuthenticatedUser:
+        """Resolve a fallback user from cached metadata or raise a service error."""
 
-        if response.status_code == status.HTTP_401_UNAUTHORIZED:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Supabase token")
+        cached_user = fallback_user or self._user_from_token_with_cache(access_token)
+        if cached_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Supabase user service unavailable",
+            ) from exc
+        return cached_user
 
-        try:
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            LOGGER.warning("Supabase fetch_user returned error response: %s", exc)
-            cached_user = fallback_user or self._user_from_token_with_cache(access_token)
-            if cached_user is None:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Supabase user service unavailable",
-                ) from exc
-            return cached_user
+    async def _perform_user_request(self, access_token: str, timeout: httpx.Timeout) -> httpx.Response:
+        """Execute the Supabase user endpoint request."""
 
-        payload = response.json()
+        async with httpx.AsyncClient(base_url=str(settings.supabase_url), timeout=timeout) as client:
+            return await client.get(USER_ENDPOINT, headers=self._user_headers(access_token))
+
+    def _hydrate_user(self, payload: Dict[str, Any]) -> AuthenticatedUser:
+        """Create an authenticated user model from the Supabase payload."""
 
         try:
             metadata = AppMetadata.model_validate(payload.get("app_metadata") or _empty_metadata())
@@ -164,41 +177,41 @@ class SupabaseService:
         self._cache_metadata(user.id, metadata)
         return user
 
+    async def fetch_user(self, access_token: str) -> AuthenticatedUser:
+        fallback_user = self._user_from_token_with_cache(access_token)
+        if fallback_user is not None and self._should_bypass_remote_lookup():
+            return fallback_user
+
+        timeout = self._build_timeout()
+
+        try:
+            response = await self._perform_user_request(access_token, timeout)
+        except httpx.HTTPError as exc:
+            LOGGER.warning("Supabase fetch_user failed, falling back to JWT payload: %s", exc)
+            return self._resolve_fallback_user(fallback_user, access_token, exc)
+
+        if response.status_code == status.HTTP_401_UNAUTHORIZED:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Supabase token")
+
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            LOGGER.warning("Supabase fetch_user returned error response: %s", exc)
+            return self._resolve_fallback_user(fallback_user, access_token, exc)
+
+        return self._hydrate_user(response.json())
+
     async def persist_simulation_consent(self, *, user_id: str) -> AppMetadata:
         consent = SimulationConsent(acknowledged=True, acknowledged_at=datetime.now(timezone.utc))
-        metadata_payload: Dict[str, Any] = {
-            "app_metadata": {
-                "consents": {
-                    "simulationOnly": consent.model_dump(by_alias=True, mode="json")
-                }
-            }
-        }
+        metadata_payload = self._metadata_payload(consent)
 
-        headers = {
-            "Authorization": f"Bearer {settings.supabase_service_role_key}",
-            "apikey": settings.supabase_service_role_key,
-        }
-
-        if settings.supabase_http_timeout_seconds <= 0:
+        if self._should_use_local_persistence():
             return self._persist_consent_locally(user_id=user_id, consent=consent)
 
-        try:
-            timeout = httpx.Timeout(
-                settings.supabase_http_timeout_seconds,
-                connect=settings.supabase_http_timeout_seconds,
-                read=settings.supabase_http_timeout_seconds,
-                write=settings.supabase_http_timeout_seconds,
-            )
-        except ValueError:
-            timeout = httpx.Timeout(1.0)
+        timeout = self._build_timeout()
 
         try:
-            async with httpx.AsyncClient(base_url=str(settings.supabase_url), timeout=timeout) as client:
-                response = await client.put(
-                    ADMIN_UPDATE_ENDPOINT.format(user_id=user_id),
-                    headers=headers,
-                    json=metadata_payload,
-                )
+            response = await self._perform_consent_update(user_id=user_id, payload=metadata_payload, timeout=timeout)
         except httpx.HTTPError as exc:
             LOGGER.warning("Supabase consent persistence failed, caching locally: %s", exc)
             return self._persist_consent_locally(user_id=user_id, consent=consent)
@@ -213,6 +226,40 @@ class SupabaseService:
         metadata = AppMetadata.model_validate(payload.get("app_metadata", metadata_payload["app_metadata"]))
         self._cache_metadata(user_id, metadata)
         return metadata
+
+    @staticmethod
+    def _metadata_payload(consent: SimulationConsent) -> Dict[str, Any]:
+        """Build the Supabase metadata payload for consent updates."""
+
+        return {
+            "app_metadata": {
+                "consents": {
+                    "simulationOnly": consent.model_dump(by_alias=True, mode="json")
+                }
+            }
+        }
+
+    @staticmethod
+    def _should_use_local_persistence() -> bool:
+        """Return True when Supabase should not be contacted for metadata updates."""
+
+        return settings.supabase_http_timeout_seconds <= 0
+
+    async def _perform_consent_update(
+        self,
+        *,
+        user_id: str,
+        payload: Dict[str, Any],
+        timeout: httpx.Timeout,
+    ) -> httpx.Response:
+        """Submit consent updates to the Supabase admin endpoint."""
+
+        async with httpx.AsyncClient(base_url=str(settings.supabase_url), timeout=timeout) as client:
+            return await client.put(
+                ADMIN_UPDATE_ENDPOINT.format(user_id=user_id),
+                headers=self._admin_headers(),
+                json=payload,
+            )
 
     def _persist_consent_locally(self, *, user_id: str, consent: SimulationConsent) -> AppMetadata:
         """Fallback path used when Supabase is unreachable. Keeps metadata cached per user."""

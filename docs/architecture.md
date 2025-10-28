@@ -99,7 +99,7 @@ Rel(notify, user, "Emails & in-app alerts")
 ## Tech Stack
 | Layer | Technology | Rationale |
 | --- | --- | --- |
-| Frontend | Next.js 15 (App Router), TypeScript, Tailwind, React Flow, Radix UI, Lucid icons | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind, Radix UI, Tremor UI, React Flow, Lucid icons | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
 | Frontend State | React Query + Zustand + Zustand persist | Separates server data from canvas draft state; optimistic UX for validation. |
 | Backend | FastAPI, Uvicorn, SQLAlchemy, Pydantic v2 | High-performance async APIs with strict schema validation and OpenAPI generation. |
 | Workers | Celery 5, Redis Streams, AWS Batch, Pandas, vectorbt | Durable backtests/paper trading with horizontal scaling and time-series tooling. |
@@ -469,7 +469,7 @@ components:
 
 **Dependencies:** Supabase Auth service, Strategy API, Notification API
 
-**Technology Stack:** Next.js 15, React 18, Tailwind, React Flow, React Query, Zustand
+**Technology Stack:** Next.js 15, React 18, Tailwind, Radix UI, Tremor UI, React Flow, React Query, Zustand
 
 ### FastAPI Core Service
 **Responsibility:** Exposes CRUD, enforces quotas, orchestrates jobs, handles compliance/billing webhooks.

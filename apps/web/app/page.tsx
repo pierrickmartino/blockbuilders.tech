@@ -1,6 +1,16 @@
-import Link from "next/link";
+/**
+ * @fileoverview Marketing landing page entrypoint for unauthenticated visitors.
+ */
 
-export default function LandingPage() {
+import Link from "next/link";
+import { ReactElement } from "react";
+
+/**
+ * Renders key calls to action directing users to authentication and documentation.
+ *
+ * @returns {ReactElement} Landing page hero content.
+ */
+export default function LandingPage(): ReactElement {
   return (
     <main>
       <h1>BlockBuilders Platform</h1>

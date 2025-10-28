@@ -60,4 +60,6 @@ class AuditService:
         return event
 
     def history(self) -> List[AuditLogEvent]:
+        """Return an immutable snapshot of recorded audit events."""
+
         return list(self._events)

@@ -193,7 +193,7 @@ Adopt a modular microservices approach within the monorepo: a gateway/API layer 
 Establish a full testing pyramid: unit tests for React components, Python business logic, and data transformers; integration tests for API workflows and async jobs; end-to-end tests for critical user journeys (e.g., creating, backtesting, and scheduling a strategy). Include synthetic data fixtures and contract tests for external market data APIs.
 
 ### Additional Technical Assumptions and Requests
-- Frontend built with Next.js (App Router), TypeScript, TailwindCSS, React Flow, React Query, and Zustand for state management.
+- Frontend built with Next.js (App Router), TypeScript, TailwindCSS, Radix UI, Tremor UI, React Flow, React Query, and Zustand for state management.
 - Backend services use FastAPI with async execution, Celery/Redis (or equivalent) for job orchestration, and TimescaleDB for time-series results.
 - Supabase Postgres manages authentication and transactional configuration data; S3-compatible storage retains backtest artifacts and reports.
 - Stripe powers billing with usage metering hooks for freemium limits; LaunchDarkly (or open-source equivalent) controls feature flags.

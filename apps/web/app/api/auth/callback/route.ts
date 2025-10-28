@@ -1,9 +1,19 @@
+/**
+ * @fileoverview OAuth callback handler persisting simulation consent before redirecting.
+ */
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
-export async function GET(request: Request) {
+/**
+ * Exchanges Supabase OAuth codes for sessions and optionally captures consent acknowledgement.
+ *
+ * @param {Request} request - Incoming OAuth callback request.
+ * @returns {Promise<NextResponse>} Redirect response to the requested destination.
+ */
+export async function GET(request: Request): Promise<NextResponse> {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/dashboard";
