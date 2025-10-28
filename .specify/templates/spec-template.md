@@ -97,10 +97,10 @@
 
 ### Quality Constraints *(Constitution Alignment)*
 
-- **Code Quality (Principle I)**: [Describe linting, typing, documentation, ADR expectations for this feature]
-- **Testing (Principle II)**: [List unit/integration/contract tests that will prove the feature works; include coverage targets]
-- **User Experience (Principle III)**: [Reference design-system components, UX spec version, accessibility checks, responsive breakpoints]
-- **Performance (Principle IV)**: [Record latency/LCP/backtest budgets and how they will be measured]
+- **Code Quality (Principle I)**: [Describe linting, typing, documentation, ADR expectations for this feature, name the accountable owner, and link to evidence locations]
+- **Testing (Principle II)**: [List unit/integration/contract tests that will prove the feature works, include coverage targets, identify the test owner, and describe the failing-first strategy]
+- **User Experience (Principle III)**: [Reference design-system components, UX spec version, accessibility checks, responsive breakpoints, and the reviewer approving alignment]
+- **Performance (Principle IV)**: [Record latency/LCP/backtest budgets, how they will be measured, and who is responsible for capturing the metrics]
 
 ### Key Entities *(include if feature involves data)*
 

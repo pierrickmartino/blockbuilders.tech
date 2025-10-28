@@ -27,14 +27,14 @@
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
-## Constitution Check
+## Principle Evidence & Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design. Document evidence locations, responsible owners, and the validation order for each principle.*
 
-- Principle I — Code Quality Stewardship: List affected modules, lint/type jobs, and any ADRs required to keep package dependencies acyclic.
-- Principle II — Test-First Evidence: Detail the pre-implementation tests you will author (unit, integration, contracts) and how failure will be verified.
-- Principle III — Consistent User Journeys: Reference the UX spec version, design-system components, and accessibility validations for this feature.
-- Principle IV — Performance Guarantees: Declare performance budgets, measurement tooling (e.g., Datadog dashboards, Chrome traces), and load expectations.
+- Principle I — Code Quality Stewardship: List affected modules, lint/type jobs, code owner approvals, evidence links, and any ADRs required to keep package dependencies acyclic.
+- Principle II — Test-First Evidence: Detail the pre-implementation tests you will author (unit, integration, contracts), how failure will be verified, and who owns each test artifact.
+- Principle III — Consistent User Journeys: Reference the UX spec version, design-system components, accessibility validations, and the reviewer confirming UX alignment.
+- Principle IV — Performance Guarantees: Declare performance budgets, measurement tooling (e.g., Datadog dashboards, Chrome traces), load expectations, and the owner capturing each metric.
 
 ## Project Structure
 
