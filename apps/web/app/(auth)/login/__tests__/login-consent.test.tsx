@@ -28,13 +28,28 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams()
 }));
 
-vi.mock("@/stores/workspace", () => ({
-  useWorkspaceStore: {
-    getState: () => ({
-      loadWorkspace: loadWorkspaceMock
-    })
-  }
-}));
+vi.mock("@/stores/workspace", () => {
+  const state = {
+    seed: null,
+    nodes: [],
+    edges: [],
+    history: [],
+    loadWorkspace: loadWorkspaceMock,
+    pushHistory: vi.fn(),
+    reset: vi.fn()
+  };
+
+  const useWorkspaceStore = (selector?: (store: typeof state) => unknown) => {
+    if (selector) {
+      return selector(state);
+    }
+    return state;
+  };
+
+  useWorkspaceStore.getState = () => state;
+
+  return { useWorkspaceStore };
+});
 
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
