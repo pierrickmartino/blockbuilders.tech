@@ -2,9 +2,9 @@ schema: 1
 story: '1.1'
 story_title: 'Platform Skeleton & Authentication'
 gate: PASS
-status_reason: 'Consent serialization fix restores 204 responses and audit fan-out; Vitest + FastAPI + worker pytest suites all green. Only remaining risk is offline Playwright smoke still pending.'
+status_reason: 'Regression sweep keeps consent serialization fix, audit fan-out, and workspace bootstrap stable; remaining risk is limited to pending Playwright smoke plus rate limiting/login telemetry backlog.'
 reviewer: 'Quinn (Test Architect & Quality Advisor)'
-updated: '2025-11-02T20:55:00Z'
+updated: '2025-11-05T06:06:03Z'
 top_issues:
   - 'tests/e2e/onboarding.spec.ts – Playwright package install blocked offline; rerun once registry access returns.'
 waiver:
@@ -12,8 +12,8 @@ waiver:
 quality_score: 85
 expires: '2025-12-31T20:55:00Z'
 evidence:
-  tests_reviewed: 6
-  risks_identified: 1
+  tests_reviewed: 3
+  risks_identified: 2
   trace:
     ac_covered: [1, 2, 3, 4]
     ac_gaps: []
